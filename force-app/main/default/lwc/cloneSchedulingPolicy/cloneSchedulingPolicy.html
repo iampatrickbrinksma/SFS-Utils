@@ -1,0 +1,23 @@
+<!-- sldsValidatorIgnore -->
+<template>
+  <lightning-quick-action-panel header="Clone Scheduling Policy">
+    <lightning-layout horizontal-align="spread">
+      <lightning-layout-item padding="around-small" size="12">
+        <div class="spinnerHolder">
+          <lightning-input name="schedulingPolicyName" label="Name of Cloned Scheduling Policy" value={policyName}
+            type="text" max-length="100" onchange={handle_InputFieldChange}>
+          </lightning-input>
+          <template if:true={showSpinner}>
+            <lightning-spinner alternative-text="Processing..." variant="brand" size="large">
+            </lightning-spinner>
+          </template>
+        </div>
+      </lightning-layout-item>
+    </lightning-layout>
+    <div slot="footer">
+      <lightning-button variant="neutral" label="Cancel" onclick={handle_Cancel}></lightning-button>
+      <lightning-button variant="brand" label="Clone" class="slds-m-left_x-small"
+        onclick={handle_ClonePolicy}>></lightning-button>
+    </div>
+  </lightning-quick-action-panel>
+</template>
