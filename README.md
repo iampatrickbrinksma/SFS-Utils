@@ -38,6 +38,7 @@ A number of Apex class methods to provide the ability to:
 * Delete all scheduling policies and optionally work rules and/or service objectives
 * Create a backup of all scheduling policies, work rules and service objectives and their relationships
 * Restore a backup of all scheduling policies, work rules and service objectives and their relationships
+  * A backup file of the standard scheduling policies, work rules and service objectives are provided in config/files/Backup of Field Service Standard Scheduling Policies.json which can be used to restore the default ones.
 
 ### Components
 The class sfsSeedDataUtil provides the following methods:
