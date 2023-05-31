@@ -36,27 +36,33 @@ public with sharing class sfsPolygonsUtil {
     }
 
     public List<FSL__Polygon__c> getMapPolygonsByServiceTerritoryId(Id stId){
-        String q = getAllFieldsQuery('FSL__Polygon__c', 'FSL__Service_Territory__c = :stId');
-        Map<String, Object> bindParams = new Map<String, Object>{
-            'stId' => stId
-        };
-        return Database.queryWithBinds(q, bindParams, AccessLevel.SYSTEM_MODE);        
+        Map<Id, List<FSL__Polygon__c>> stIdToPolygons = getMapPolygonsByServiceTerritoryIds(new List<Id>{stId});
+        if (stIdToPolygons != null){
+            return stIdToPolygons.get(stId);
+        } else {
+            return null;
+        }
     }
 
-    public Map<Id, FSL__Polygon__c> getMapPolygonsByServiceTerritoryIds(List<Id> stIds){
-        Map<Id, FSL__Polygon__c> stIdToPolygon;
+    public Map<Id, List<FSL__Polygon__c>> getMapPolygonsByServiceTerritoryIds(List<Id> stIds){
+        Map<Id, List<FSL__Polygon__c>> stIdToPolygons;
         String q = getAllFieldsQuery('FSL__Polygon__c', 'FSL__Service_Territory__c IN :stIds');
         Map<String, Object> bindParams = new Map<String, Object>{
             'stIds' => stIds
         };
         List<FSL__Polygon__c> polygons = Database.queryWithBinds(q, bindParams, AccessLevel.SYSTEM_MODE);     
         if (!polygons.isEmpty()){
-            stIdToPolygon = new Map<Id, FSL__Polygon__c>();
+            stIdToPolygons = new Map<Id, List<FSL__Polygon__c>>();
             for (FSL__Polygon__c polygon : polygons){
-                stIdToPolygon.put(polygon.FSL__Service_Territory__c, polygon);
+                List<FSL__Polygon__c> listOfPolygon = stIdToPolygons.get(polygon.FSL__Service_Territory__c);
+                if (listOfPolygon == null){
+                    listOfPolygon = new List<FSL__Polygon__c>();
+                }
+                listOfPolygon.add(polygon);
+                stIdToPolygons.put(polygon.FSL__Service_Territory__c, listOfPolygon);
             }
         }   
-        return stIdToPolygon;
+        return stIdToPolygons;
     }    
 
     private ServiceTerritory getServiceTerritoryById(Id stId){
