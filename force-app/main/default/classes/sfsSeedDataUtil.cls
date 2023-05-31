@@ -15,6 +15,8 @@ public with sharing class sfsSeedDataUtil {
         backupServiceAppointmentStatusTransitions();
         FSL.GlobalAPIS.ClearAllStatusTransitions();
         FSL.GlobalAPIS.addStatusTransition('None', 'Canceled');
+        FSL.GlobalAPIS.addStatusTransition('None', 'Scheduled');
+        FSL.GlobalAPIS.addStatusTransition('Scheduled', 'None');
         FSL.GlobalAPIS.addStatusTransition('Scheduled', 'Dispatched');
         FSL.GlobalAPIS.addStatusTransition('Scheduled', 'Canceled');
         FSL.GlobalAPIS.addStatusTransition('Dispatched', 'Canceled');
