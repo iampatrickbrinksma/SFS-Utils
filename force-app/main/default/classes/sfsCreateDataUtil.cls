@@ -1,5 +1,13 @@
-public with sharing class sfsCreateUtil {
+/**
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+* Util class to create Field Service data objects like users, service resources and service territory
+* ──────────────────────────────────────────────────────────────────────────────────────────────────
+* @author         Patrick Brinksma   <patrick@brinksma.es>
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+*/
+public with sharing class sfsCreateDataUtil {
 
+    // Create Salesforce users for creating service resources
     public static List<User> createTechnicianUsers(Id templateUserId, Integer nrOfUsers, String profileName, String userEmail,
                                             String firstName, String lastName, String userNamePrefix, String userNameSuffix)
     {
@@ -38,10 +46,12 @@ public with sharing class sfsCreateUtil {
         return techUsers;
     }
 
+    // Assign technician users the right Field Service permission sets
     public static void assignPermSetsToTechnicianUsers(List<User> users){
         assignPermSetsToUsers(users, new List<String>{'FSL_Resource_License', 'FSL_Resource_Permissions'});
     }
 
+    // Generic method to assign a list of permission sets to a list of users
     public static void assignPermSetsToUsers(List<User> users, List<String> permSetNames){
         List<PermissionSet> permSets = [select Id from PermissionSet where Name = :permSetNames];
         List<PermissionSetAssignment> permSetsAssigns = new List<PermissionSetAssignment>();
@@ -58,6 +68,7 @@ public with sharing class sfsCreateUtil {
         insert permSetsAssigns;    
     }
 
+    // Create a service territory, service resources and add the resources as territory members
     public static void createServiceTerritoryWithMembers(String stName, Boolean useESO, String stOperatingHours,
                                                         Location stCenter, Double radiusInMeters,
                                                         List<User> techUsers, Datetime startDate, Datetime endDate)
@@ -104,6 +115,7 @@ public with sharing class sfsCreateUtil {
         insert stms;          
     }
 
+    // Create work orders and service appointments with random geolocations based on a provided Work Type and center location and radius
     public static List<WorkOrder> createWorkOrdersAndServiceAppointments(Id stId, Double radiusInMeters, Integer nrOfRecords, 
                                                                         Id workTypeId, String woSubject, Datetime esp, Datetime dd,
                                                                         Integer minDuration, Integer maxDuration)
