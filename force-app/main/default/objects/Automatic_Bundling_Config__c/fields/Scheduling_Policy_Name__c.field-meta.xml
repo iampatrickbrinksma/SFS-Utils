@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Scheduling_Policy_Name__c</fullName>
+    <externalId>false</externalId>
+    <inlineHelpText>Name of the scheduling policy to use when starting optimization after automatic bundling has completed</inlineHelpText>
+    <label>Scheduling Policy Name</label>
+    <length>255</length>
+    <required>true</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>
