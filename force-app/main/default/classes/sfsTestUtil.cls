@@ -1,3 +1,11 @@
+/**
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+* Util class which can be used in Apex Test Classes which require the appointment status transitions
+* to be configured to reflect the real configuration
+* ──────────────────────────────────────────────────────────────────────────────────────────────────
+* @author         Patrick Brinksma   <patrick@brinksma.es>
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+*/
 @isTest
 public with sharing class sfsTestUtil {
 

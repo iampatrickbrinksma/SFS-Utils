@@ -1,3 +1,11 @@
+/**
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+* Util class which provides a set of methods to clone a scheduling policies including 
+* the work rules and service objective with their respective settings
+* ──────────────────────────────────────────────────────────────────────────────────────────────────
+* @author         Patrick Brinksma   <patrick@brinksma.es>
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+*/
 public with sharing class sfsSchedulingPolicyUtil {
 
     @AuraEnabled(cacheable=false)

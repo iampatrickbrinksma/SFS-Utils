@@ -1,3 +1,12 @@
+/**
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+* Util class which provides a set of methods to deal with Salesforce Field Service seed data
+* like the Service Appointment status transitions and backing up and restoring scheduling policies
+* including work rules and service objectives
+* ──────────────────────────────────────────────────────────────────────────────────────────────────
+* @author         Patrick Brinksma   <patrick@brinksma.es>
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+*/
 public with sharing class sfsSeedDataUtil {
 
     /*

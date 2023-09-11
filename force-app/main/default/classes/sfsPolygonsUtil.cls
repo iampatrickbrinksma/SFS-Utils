@@ -1,3 +1,10 @@
+/**
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+* Util class which provides a set of methods to deal with polygons
+* ──────────────────────────────────────────────────────────────────────────────────────────────────
+* @author         Patrick Brinksma   <patrick@brinksma.es>
+* ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+*/
 public with sharing class sfsPolygonsUtil {
 
     private Double lat;
