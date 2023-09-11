@@ -35,6 +35,7 @@ public with sharing class sfsAppointmentBundlingAPI {
         List<Id> saIds = new List<Id>{'08p060000003KkPAAU','08p060000003KkKAAU','08p060000003KkFAAU'};
         sfsAppointmentBundlingAPI bApi = new sfsAppointmentBundlingAPI(sfsAppointmentBundlingAPI.BundlingAction.UNBUNDLE_MULTIPLE, saIds);
         sfsAppointmentBundlingAPI.multipleUnbundleResponse res = (sfsAppointmentBundlingAPI.multipleUnbundleResponse)bApi.run();
+        List<sfsAppointmentBundlingAPI.multipleUnbundleResponsePayload> innerRes = bApi.getMultipleUnbundleResponsePayloadList(res);
 
         // Update existing bundle (add members)
         Id bundleId = '08p060000003KipAAE';
@@ -307,13 +308,26 @@ public with sharing class sfsAppointmentBundlingAPI {
                 resObj = (bundleResponse)JSON.deserialize(response, bundleResponse.class);
             }
             when UNBUNDLE_MULTIPLE {
-                // TODO - Response contains a JSON string in one of the JSON attributes
-                // Not been able to parse that JSON string yes
                 resObj = (multipleUnbundleResponse)JSON.deserialize(response, multipleUnbundleResponse.class);
             }
         }
 
         return resObj;
+    }
+
+    /**
+     * Get Inner Response Payload from the Multiple Unbundling API response
+     */
+    public List<multipleUnbundleResponsePayload> getMultipleUnbundleResponsePayloadList (multipleUnbundleResponse res){
+        List<sfsAppointmentBundlingAPI.multipleUnbundleResponsePayload> innerRes;
+
+        String innerJson = res.responsePayload;
+        if (!String.isBlank(innerJson)){
+            innerJson = innerJson.replaceAll('\n', ' ').replaceAll('’', '\'');
+            innerRes = (List<sfsAppointmentBundlingAPI.multipleUnbundleResponsePayload>)JSON.deserialize(innerJson, List<sfsAppointmentBundlingAPI.multipleUnbundleResponsePayload>.class);            
+        }
+        System.debug(innerRes);
+        return innerRes;
     }
 
     /**
