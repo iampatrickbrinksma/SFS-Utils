@@ -64,9 +64,11 @@ sfsAppointmentBundlingAPI.bundleResponse res = (sfsAppointmentBundlingAPI.bundle
 
 **Unbundling multiple bundles**
 ```
+// Unbundling multiple bundles
 List<Id> saIds = new List<Id>{'08p060000003KkPAAU','08p060000003KkKAAU','08p060000003KkFAAU'};
 sfsAppointmentBundlingAPI bApi = new sfsAppointmentBundlingAPI(sfsAppointmentBundlingAPI.BundlingAction.UNBUNDLE_MULTIPLE, saIds);
 sfsAppointmentBundlingAPI.multipleUnbundleResponse res = (sfsAppointmentBundlingAPI.multipleUnbundleResponse)bApi.run();
+List<sfsAppointmentBundlingAPI.multipleUnbundleResponsePayload> innerRes = bApi.getMultipleUnbundleResponsePayloadList(res);
 ```
 
 **Update existing bundle (add members)**
@@ -76,6 +78,8 @@ List<Id> saIds = new List<Id>{'08p060000003FgCAAU','08p060000003FeAAAU'};
 sfsAppointmentBundlingAPI bApi = new sfsAppointmentBundlingAPI(sfsAppointmentBundlingAPI.bundlingAction.UPDATE_BUNDLE, bundleId, saIds);
 sfsAppointmentBundlingAPI.bundleResponse res = (sfsAppointmentBundlingAPI.bundleResponse)bApi.run();
 ```
+
+> Review the class and help documentation to understand the structure of the response 
 
 ## Start Optimization once Automatic Bundling is complete
 Automatic bundling can be scheduled or started on demand using the REST API (see Appointment Bundling Utils). In some scenarios it would be great if optimization would start automatically once automatic bundling is completed. The following components are included to make this possible:
