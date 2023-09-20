@@ -149,7 +149,9 @@ public with sharing class sfsCreateDataUtil {
                     WorkTypeId = workTypeId,
                     Subject = woSubject + ' ' + String.valueOf(i).leftPad(String.valueOf(nrOfRecords).length(), '0'),
                     StartDate = esp,
-                    EndDate = dd
+                    EndDate = dd,
+                    Latitude = woLocations[i].getLatitude(),                    
+                    Longitude = woLocations[i].getLongitude()                    
                 )
             );
         }
@@ -165,6 +167,8 @@ public with sharing class sfsCreateDataUtil {
                 WHERE 
                     Id = :workTypeId
             ].ShouldAutoCreateSvcAppt;
+        } else {
+            createSAs = true;
         }
 
         if (createSAs){
