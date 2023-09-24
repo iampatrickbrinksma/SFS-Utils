@@ -1,17 +1,17 @@
-# Salesforce Field Service Utils
+# Salesforce Field Service Utils #
 
 A collection of useful code snippets to use in your Salesforce Field Service implementation and projects
 
-# What's Included?
+# What's Included? #
 
-## Polygon Utils
+## Polygon Utils ##
 The Apex class sfsPolygonUtil provides the following methods:
 * getServiceTerritoryByGeolocation - returns a Service Territory record based on a geolocation (latitude / longitude)
 * getServiceTerritoriesByGeolocation - returns a list of Service Territory records based on a geolocation (latitude / longitude) (Support from Summer '23 onwards)
 * getMapPolygonsByServiceTerritoryId - returns a list of Map Polygon records to which the Service Territory is mapped to
 * getMapPolygonsByServiceTerritoryIds - returns a map of Service Territory Id to the list of Map Polygon records it is mapped to
 
-## Seed Data Utils
+## Seed Data Utils ##
 The Apex class sfsSeedDataUtil provides the following methods:
 * resetServiceAppointmentStatusTransitions - resets the Service Appointment status transitions to the default ones provided that the default status values exist
 * backupServiceAppointmentStatusTransitions - creates a backup file for the current Service Appointment status transitions and saves it as a File (ContentDocument) in an anonymous Apex code block so you can restore the status transitions by running it as anonymous Apex
@@ -19,7 +19,7 @@ The Apex class sfsSeedDataUtil provides the following methods:
 * backupSchedulingPoliciesFull - creates a backup file for all Scheduling Policy, Work Rules, Service Objective records and the relationship between them and saves it as a File (ContentDocument)
 * restoreSchedulingPoliciesFull - restores all Scheduling Policy, Work Rules, Service Objective records from the file created with the backupSchedulingPoliciesFull method
 
-## Create Data Util
+## Create Data Util ##
 The Apex class sfsCreateUtil provides the following methods:
 * createTechnicianUsers - creates users to be used as Service Resources (Technicians)
 * assignPermSetsToTechnicianUsers - assigns the permission sets Field Service Resource Permissions and Field Service Resource License to the users
@@ -27,7 +27,56 @@ The Apex class sfsCreateUtil provides the following methods:
 * createServiceTerritoryWithMembers - creates a service territory, service resources and associates these resources to the territory as service territory members based on a geolocaiton and provided radius in meters
 * createWorkOrdersAndServiceAppointments - creates work orders and service appoontments based on a geolocation and provided radius in meters and a random duration based on the provided minimum and maximum length
 
-## Appointment Bundling Utils
+## Scheduling Utils ##
+The class sfsSchedulingUtil provides an abstract layer on top of the methods that retrieve available time slots and schedule appointments as described [here](https://developer.salesforce.com/docs/atlas.en-us.field_service_dev.meta/field_service_dev/apex_namespace_FSL.htm). 
+
+How to use:
+
+### Get arrival windows based on candidates ###
+This method first retrieves available time slots for candidates and then validates the slots against arrival windows, so you are able to filter on resources with custom logic, and the returned slots provide the grade per resource. You can sort by Grade (grade) and Start Time (starttime) of the slot.
+```
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+Id operatingHoursId = [select Id from OperatingHours where Name = 'Gold Appointments Calendar'].Id;
+List<sfsTimeSlot> slots = sfsSchedulingUtil.getCandidateSlotsWithArrivalWindow(schedulingPolicyId, serviceAppointmentId, operatingHoursId, 'grade');
+```
+
+### Get candidates ###
+This method first retrieves available time slots for candidates as the global action "Candidates", using the FSL.GradeSlotsServicegetGradedMatrix method. You can sort by Grade (grade) and Start Time (starttime) of the slot.
+```
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+List<sfsTimeSlot> slots = sfsSchedulingUtil.getGradedMatrixSlots(schedulingPolicyId, serviceAppointmentId, 'grade');
+```
+
+### Get book appointment slots ###
+This method retrieves the available slots represented as arrival window slots during which the resource will arrive on site as the global action "Book Appointment" using the FSL.AppointmentBookingService.getSlots method. You can sort by Grade (grade) and Start Time (starttime) of the slot.
+```
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+ServiceAppointment sa = [select Id, ServiceTerritory.OperatingHours.TimeZone from ServiceAppointment where Name = 'SA-1001'].Id;
+Id serviceAppointmentId = sa.Id;
+TimeZone serviceTerritoryTimeZone = TimeZone.getTimeZone(sa.ServiceTerritory.OperatingHours.TimeZone);
+Id operatingHoursId = [select Id from OperatingHours where Name = 'Gold Appointments Calendar'].Id;
+List<sfsTimeSlot> slots = sfsSchedulingUtil.getAppointmentBookingSlots(serviceAppointmentId, Id schedulingPolicyId, Id operatingHoursId, TimeZone serviceTerritoryTimeZone, Boolean exactAppointments, 'grade');
+```
+
+### Schedule Appointment ###
+This method schedule an appointment using the FSL.ScheduleService.schedule method.
+```
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+FSL.ScheduleResult scheduleResult = sfsSchedulingUtil.scheduleAppointment(serviceAppointmentId, schedulingPolicyId);
+```
+
+### Schedule Complex Work ###
+This method schedule appointments that related to each other via complex work using the FSL.ScheduleService.scheduleExtended method. Use this method only when ES&O is enabled, as it assumes it runs synchronously.
+```
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+List<FSL.ScheduleResult> scheduleResults = sfsSchedulingUtil.scheduleAppointmentChain(serviceAppointmentId, schedulingPolicyId);
+```
+
+## Appointment Bundling Utils ## 
 The class sfsAppointmentBundlingAPI provides an abstract layer on top of the [Field Service Appointment Bundling REST APIs](https://developer.salesforce.com/docs/atlas.en-us.field_service_dev.meta/field_service_dev/fsl_rest_sabundling.htm). 
 
 > Please review and be aware of the API limitations as described in the help documentation
