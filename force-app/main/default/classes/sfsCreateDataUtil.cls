@@ -8,6 +8,8 @@
 public with sharing class sfsCreateDataUtil {
 
     // Create Salesforce users for creating service resources
+    // The templateUserId is an Id of a User record which can be used as a template for the attributes: 
+    // EmailEncodingKey, LanguageLocaleKey, LocaleSidKey and TimeZoneSidKey
     public static List<User> createTechnicianUsers(Id templateUserId, Integer nrOfUsers, String profileName, String userEmail,
                                             String firstName, String lastName, String userNamePrefix, String userNameSuffix)
     {
@@ -38,7 +40,8 @@ public with sharing class sfsCreateDataUtil {
                     LanguageLocaleKey = templateUser.LanguageLocaleKey,
                     LocaleSidKey = templateUser.LocaleSidKey,
                     TimeZoneSidKey = templateUser.TimeZoneSidKey,
-                    UserPermissionsSupportUser = true
+                    UserPermissionsSupportUser = false,             // This would consume a Service Cloud feature license and is not required for a technician
+                    UserPermissionsSFContentUser = false            // This would consume a Salesforce Content feature license
                 )
             );
         }
