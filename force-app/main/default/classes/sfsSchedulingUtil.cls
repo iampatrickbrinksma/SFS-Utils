@@ -35,7 +35,8 @@ public with sharing class sfsSchedulingUtil {
             Integer appointmentDurationInMinutes = Integer.valueOf(getAppointmentDuration(serviceAppointmentId));
 
             // Get the arrival windows definition
-            Map<String, List<arrivalWindowSlot>> dayToAWSlots = getArrivalWindowTimeSlots(operatingHoursId);
+            TimeZone tz = getTimeZone(serviceAppointmentId);
+            Map<String, List<arrivalWindowSlot>> dayToAWSlots = getArrivalWindowTimeSlots(operatingHoursId, tz);
             
             sfsPerformanceMeasure.start('DetermineValidArrivalWindows');
 
@@ -268,10 +269,11 @@ public with sharing class sfsSchedulingUtil {
      * Retrieve arrival time slots from a given operating hours record
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
      * @param   operatingHoursId                        Id of the operating hours representing the arrival windows
+     * @param   tz                                      TimeZone of the appointment or user
      * @return  Map<String, List<arrivalWindowSlot>>    Map of day of the week to a list of arrival windows
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
      */      
-    private static Map<String, List<arrivalWindowSlot>> getArrivalWindowTimeSlots(Id operatingHoursId){
+    private static Map<String, List<arrivalWindowSlot>> getArrivalWindowTimeSlots(Id operatingHoursId, TimeZone tz){
 
         sfsPerformanceMeasure.start('getArrivalWindowTimeSlots');
 
@@ -296,7 +298,6 @@ public with sharing class sfsSchedulingUtil {
         ];
         
         if (!ohTimeSlots.isEmpty()){
-            TimeZone tz = TimeZone.getTimeZone(ohTimeSlots[0].OperatingHours.TimeZone);
             Integer tzOffSetInMs = tz.getOffset(System.now());
             for (Schema.TimeSlot slot : ohTimeSlots){
                 List<arrivalWindowSlot> awSlots = dayToSlots.get(slot.DayOfWeek);
@@ -317,6 +318,40 @@ public with sharing class sfsSchedulingUtil {
         return dayToSlots;
     }
 
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Retrieve TimeZone from appointment, if no territory then return user's timezone
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @param   serviceAppointmentId    Id of the service appointment
+     * @return  TimeZone                TimeZone of appointment or user
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+     */    
+    private static TimeZone getTimeZone(Id serviceAppointmentId){
+        ServiceAppointment sa = [
+            select 
+                ServiceTerritoryId,
+                ServiceTerritory.OperatingHours.TimeZone
+            from 
+                ServiceAppointment 
+            where 
+                Id = :serviceAppointmentId
+        ];
+        TimeZone tz;
+        if (sa.ServiceTerritoryId == null){
+            tz = UserInfo.getTimeZone();
+        } else {
+            tz = TimeZone.getTimeZone(sa.ServiceTerritory.OperatingHours.TimeZone);
+        }
+        return tz;
+    }
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Return new instance of a Map of Day of the Week to new List of ArrivalWindowSlot
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @return  Map<String, List<arrivalWindowSlot>>    Map of Day of the Week to new List of ArrivalWindowSlot
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+     */    
     private static Map<String, List<arrivalWindowSlot>> newMapOfDayToListOfArrivalWindows(){
         return new Map<String, List<arrivalWindowSlot>>{
             'Monday' => new List<arrivalWindowSlot>(),
