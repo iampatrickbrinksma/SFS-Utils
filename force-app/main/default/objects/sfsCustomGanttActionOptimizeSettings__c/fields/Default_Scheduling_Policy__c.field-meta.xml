@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Default_Scheduling_Policy__c</fullName>
+    <description>Name of the scheduling policy to use when running optimization via the custom gantt action. When empty, the user is allowed to pick a scheduling policy.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Name of the scheduling policy to use when running optimization via the custom gantt action. When empty, the user is allowed to pick a scheduling policy.</inlineHelpText>
+    <label>Default Scheduling Policy</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>

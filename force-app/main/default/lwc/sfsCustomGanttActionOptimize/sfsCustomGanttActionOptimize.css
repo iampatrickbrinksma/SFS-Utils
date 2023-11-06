@@ -1,0 +1,12 @@
+.lightboxControllers {
+    position: absolute;
+    bottom: 0;
+    padding: 10px 15px;
+    background: #F4F6F9;
+    width: 100%;
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top: 2px solid #D8DDE6;
+    margin-top: 8px;
+    text-align: right
+}

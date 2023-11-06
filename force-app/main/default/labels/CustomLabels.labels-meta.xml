@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomLabels xmlns="http://soap.sforce.com/2006/04/metadata">
+    <labels>
+        <fullName>sfsTryAgain</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Try Again</shortDescription>
+        <value>Try Again</value>
+    </labels>
+    <labels>
+        <fullName>sfsSelectAppointmentsOptimize</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Select Appointments Optimize</shortDescription>
+        <value>Select the appointments you want to optimize</value>
+    </labels>    
+    <labels>
+        <fullName>sfsChooseServiceTerritories</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Choose Service Territories</shortDescription>
+        <value>Choose Service Territories to optimize (only filtered Service Territories are shown)</value>
+    </labels>  
+    <labels>
+        <fullName>sfsESOEnabled</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>ESO Enabled</shortDescription>
+        <value>* Enhanced Scheduling &amp; Optimization enabled</value>
+    </labels>
+    <labels>
+        <fullName>sfsStartingFrom</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Starting from</shortDescription>
+        <value>Starting from</value>
+    </labels>    
+    <labels>
+        <fullName>sfsUntil</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Until</shortDescription>
+        <value>Until</value>
+    </labels>  
+    <labels>
+        <fullName>sfsUsingPolicy</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Using Policy</shortDescription>
+        <value>Using the following scheduling policy</value>
+    </labels>
+    <labels>
+        <fullName>sfsInDayPolicy</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>In-Day Policy</shortDescription>
+        <value>The selected scheduling policy uses In-Day Optimization, a rapid scheduling feature.</value>
+    </labels>  
+    <labels>
+        <fullName>sfsToOptimizeAppointments</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>To Optimize Appointments</shortDescription>
+        <value>To optimize the following service appointments</value>
+    </labels> 
+    <labels>
+        <fullName>sfsOptimize</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Optimize</shortDescription>
+        <value>Optimize</value>
+    </labels>   
+    <labels>
+        <fullName>sfsFriendlyErrorMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Friendly Error Message</shortDescription>
+        <value>One or more errors occurred:</value>
+    </labels>
+    <labels>
+        <fullName>sfsFilterFieldErrorMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Filter Field Error Message</shortDescription>
+        <value>The field with API name '$1' does not exist on the '$2' object! Please contact your Salesforce administrator.</value>
+    </labels>    
+    <labels>
+        <fullName>sfsFilterFieldTypeErrorMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Filter Field Type Error Message</shortDescription>
+        <value>The field with API name '$1' on the '$2' object is not a Checkbox field! Please contact your Salesforce administrator.</value>
+    </labels>
+    <labels>
+        <fullName>sfsFilterFieldMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Filter Field Message</shortDescription>
+        <value>Only $1 records with the field '$2' checked will be optimized.</value>
+    </labels>    
+    <labels>
+        <fullName>sfsAll</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>All</shortDescription>
+        <value>All</value>
+    </labels>     
+    <labels>
+        <fullName>sfsUnscheduled</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Unscheduled</shortDescription>
+        <value>Unscheduled</value>
+    </labels>
+    <labels>
+        <fullName>sfsPolicyMissingErrorMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Policy Missing Error Message</shortDescription>
+        <value>The scheduling policy '$1' does not exist! Please contact your Salesforce administrator.</value>
+    </labels> 
+    <labels>
+        <fullName>sfsServiceTerritoryErrorMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Service Territory Error Message</shortDescription>
+        <value>Please select at least one service territory!</value>
+    </labels>
+    <labels>
+        <fullName>sfsDateRangeErrorMsg</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Date Range Error Message</shortDescription>
+        <value>Please provide a valid start and end date!</value>
+    </labels>                         
+</CustomLabels>

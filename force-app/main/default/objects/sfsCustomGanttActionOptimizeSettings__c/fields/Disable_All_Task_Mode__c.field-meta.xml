@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Disable_All_Task_Mode__c</fullName>
+    <defaultValue>false</defaultValue>
+    <description>Disable the option to choose the All Task Mode, which means it defaults to the &quot;All&quot; option.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>Disable the option to choose the All Task Mode, which means it defaults to the &quot;All&quot; option.</inlineHelpText>
+    <label>Disable All Task Mode</label>
+    <trackTrending>false</trackTrending>
+    <type>Checkbox</type>
+</CustomField>

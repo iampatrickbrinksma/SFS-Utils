@@ -1,0 +1,32 @@
+<apex:page>
+    <apex:includeLightning />
+
+    <div id="lightningvf" />
+
+    <script>
+        $Lightning.use("c:sfsCustomGanttActionOptimizeApp", function() {
+            $Lightning.createComponent(
+                "c:sfsCustomGanttActionOptimize",
+                { 
+                    recordId: "{!$CurrentPage.parameters.id}",
+                    services: "{!$CurrentPage.parameters.services}",
+                    stm: "{!$CurrentPage.parameters.stm}",
+                    type: "{!$CurrentPage.parameters.type}",
+                    start: "{!$CurrentPage.parameters.start}",
+                    end: "{!$CurrentPage.parameters.end}",
+                    schedulingPolicy: "{!$Setup.sfsCustomGanttActionOptimizeSettings__c.Default_Scheduling_Policy__c}",
+                    filterByFieldApiName: "{!$Setup.sfsCustomGanttActionOptimizeSettings__c.Filter_By_Field_API_Name__c}",
+                    disableAllTaskMode: {!$Setup.sfsCustomGanttActionOptimizeSettings__c.Disable_All_Task_Mode__c},
+                },
+                "lightningvf",
+                function(cmp) {
+                    console.log("lwc component was created");
+                    document.querySelector('c-sfs-custom-gantt-action-optimize').addEventListener('closeganttmodal', function(event){
+                        console.log('Received event from LWC, closing modal window...');
+                        parent.postMessage('closeLightbox','*');
+                    });                    
+                }
+            );
+        });
+    </script>
+</apex:page>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Filter_By_Field_API_Name__c</fullName>
+    <description>API name of the checkbox field on the Service Appointment object which is used by optimization to filter which records can be optimized. If empty, all records can be optimized, apart from pinned appointments.</description>
+    <externalId>false</externalId>
+    <inlineHelpText>API name of the checkbox field on the Service Appointment object which is used by optimization to filter which records can be optimized. If empty, all records can be optimized, apart from pinned appointments.</inlineHelpText>
+    <label>Filter By Field API Name</label>
+    <length>255</length>
+    <required>false</required>
+    <trackTrending>false</trackTrending>
+    <type>Text</type>
+    <unique>false</unique>
+</CustomField>
