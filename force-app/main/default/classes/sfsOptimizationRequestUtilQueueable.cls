@@ -1,6 +1,6 @@
 /**
 * ─────────────────────────────────────────────────────────────────────────────────────────────────┐
-* Queueable class start optimization in Salesforce Field Service
+* Queueable class start optimization in Salesforce Field Service in a Queueable context
 * ──────────────────────────────────────────────────────────────────────────────────────────────────
 * @author         Patrick Brinksma   <patrick@brinksma.es>
 * ─────────────────────────────────────────────────────────────────────────────────────────────────┘
@@ -33,25 +33,16 @@ public with sharing class sfsOptimizationRequestUtilQueueable  implements Queuea
     }
 
     public void execute(QueueableContext ctx){
-        // Construct start to start at midnight and finish
-        Date startDay = Date.newInstance(startDate.year(), startDate.month(), startDate.day());
-        Time earlyTime = Time.newInstance(0, 0, 0, 0);
-        Datetime start = Datetime.newInstance(startDay, earlyTime);
-        Datetime finish = start.addDays(horizonInDays);
 
-        // Create OAAS request
-        FSL.OAASRequest oaasRequest = new FSL.OAASRequest();
-        oaasRequest.allTasksMode = allTasksMode; // true = all SAs, false = unscheduled SAs
-        oaasRequest.filterFieldAPIName = filterByFieldApiName;
-        oaasRequest.start = start;
-        oaasRequest.finish = finish;
-        oaasRequest.includeServicesWithEmptyLocation = false;
-        oaasRequest.locations = serviceTerritoryIds;
-        oaasRequest.schedulingPolicyID = schedulingPolicyId;
-
-        // Start optimization
-        FSL.OAAS oaas = new FSL.OAAS();
-        oaas.optimize(oaasRequest);  
+        sfsOptimizationRequestUtil.optimize(
+            serviceTerritoryIds, 
+            schedulingPolicyId, 
+            startDate, 
+            horizonInDays, 
+            allTasksMode, 
+            filterByFieldApiName
+        );
+ 
     }
 
 }

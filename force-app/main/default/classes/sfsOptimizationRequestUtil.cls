@@ -29,6 +29,36 @@ public with sharing class sfsOptimizationRequestUtil {
         processAutomatedBundlingRequests(newList, oldMap);
     }
 
+    // Start optimization
+    public static Id optimize(
+        List<Id> serviceTerritoryIds, 
+        Id schedulingPolicyId, 
+        Date startDate, 
+        Integer horizonInDays, 
+        Boolean allTasksMode, 
+        String filterByFieldApiName        
+    ){
+        // Construct start to start at midnight and finish
+        Date startDay = Date.newInstance(startDate.year(), startDate.month(), startDate.day());
+        Time earlyTime = Time.newInstance(0, 0, 0, 0);
+        Datetime start = Datetime.newInstance(startDay, earlyTime);
+        Datetime finish = start.addDays(horizonInDays);
+
+        // Create OAAS request
+        FSL.OAASRequest oaasRequest = new FSL.OAASRequest();
+        oaasRequest.allTasksMode = allTasksMode; // true = all SAs, false = unscheduled SAs
+        oaasRequest.filterFieldAPIName = filterByFieldApiName;
+        oaasRequest.start = start;
+        oaasRequest.finish = finish;
+        oaasRequest.includeServicesWithEmptyLocation = false;
+        oaasRequest.locations = serviceTerritoryIds;
+        oaasRequest.schedulingPolicyID = schedulingPolicyId;
+
+        // Start optimization
+        FSL.OAAS oaas = new FSL.OAAS();
+        return oaas.optimize(oaasRequest);         
+    }
+
     // Process completed automatic bundling requests
     private static void processAutomatedBundlingRequests(List<FSL__Optimization_Request__c> newList, Map<Id, FSL__Optimization_Request__c> oldMap){
 
