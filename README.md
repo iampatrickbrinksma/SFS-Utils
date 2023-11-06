@@ -130,7 +130,7 @@ sfsAppointmentBundlingAPI.bundleResponse res = (sfsAppointmentBundlingAPI.bundle
 
 > Review the class and help documentation to understand the structure of the response 
 
-## Start Optimization once Automatic Bundling is complete
+## Start Optimization once Automatic Bundling is complete ##
 Automatic bundling can be scheduled or started on demand using the REST API (see Appointment Bundling Utils). In some scenarios it would be great if optimization would start automatically once automatic bundling is completed. The following components are included to make this possible:
 * Apex Class: sfsAppointmentBundlingAPI - provides a way to start automatic bundling on demand
 * Apex Class: sfsOptimizationRequestUtil - processes updated Optimization Request records and validates if automatic bundling has completed and queues optimization
@@ -138,7 +138,7 @@ Automatic bundling can be scheduled or started on demand using the REST API (see
 * Apex Trigger: OptimizationRequestTrigger - Detect updates on the Optimization Request object
 * Custom Setting: Automatic Bundling Config - Settings for automatic bundling and starting optimization
 
-## Prepare and Create Appointment Bundles Util
+## Prepare and Create Appointment Bundles Util ##
 If automatic bundling doesn't entirely fit your scenario, and you want more control over the bundling process, the Apex class sfsCreateBundleUtil can prepare bundles based on a provided set of service appointment records and a bundling policy. With the bundles prepared (in memory) the Apex class sfsOptimizationRequestUtilQueueable can be used to actually create the bundles (using the Apex class sfsAppointmentBundlingAPI) and optionally start optimization once all bundles have been created.
 
 Example code snippet to run the entire process:
@@ -202,3 +202,40 @@ sfsCreateBundleQueueable q = new sfsCreateBundleQueueable(
 );
 System.enqueueJob(q);
 ```
+## Custom Gantt Action for Optimization ##
+A custom gantt action for optimization to be used in the Dispatcher Console, which includes the following components:
+* Aura App: sfsCustomGanttActionOptimizeApp
+* Custom Permission: Custom Gantt Action - Optimize
+* Custom Setting: sfsCustomGanttActionOptimizeSettings__c
+* Apex Class: sfsCustomGanttActionOptimize
+* Custom Labels to support translations
+* Lightning Web Components: sfsCustomGanttActionOptimize *ldsUtil and errorPanel are included which originate from the LWC-Recipes)
+* Visualforce Page: sfsCustomGanttActionOptimize
+
+How to use:
+### Deploy ###
+1. Deploy the metadata
+2. Provide the right permissions
+
+### Create Custom Gantt Action ###
+1. Navigate to the Field Service Settings (tab) -> Dispatcher Console UI -> Custom Actions
+2. Add a new Custom Action in the "Mass Actions" section
+3. Give it a name
+4. Select "Visualforce" as Action Type
+5. Select the "sfsCustomGanttActionOptimize" Visualforce Page
+6. Select the "Custom Gantt Action - Optimize" custom permission as Required Custom Permission
+7. Select an icon
+8. Hit Save
+
+Reload the Dispatcher Console, and the custom action can be used.
+Example screenshot:
+![image](https://github.com/iampatrickbrinksma/SFS-Utils/assets/78381570/73188f1d-ac3e-4fa8-992e-ae44c17d0ebc)
+
+### Configuration ###
+You can configure the behavior of this custom gantt action by populating the Custom Setting "Custom Gantt Action Optimize Settings":
+* If you populate the field "Default Scheduling Policy" with a policy name, the user cannot select another policy, and this policy will be used for optimization
+* If you check the "Disable All Task Mode" field, the All Task Mode selection (All or Unscheduled) will default to All, and cannot be changed
+* If you populate the "Filter By Field API Name" field with the API name of a checkbox field on the Service Appointment object, only records with this field checked will be optimized. A message will be displayed in the custom gantt action
+
+
+  
