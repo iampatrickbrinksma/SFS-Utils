@@ -3,6 +3,12 @@
 A collection of useful code snippets to use in your Salesforce Field Service implementation and projects
 
 # What's Included? #
+* Polygon Utils
+* Seed Data Utils
+* Create Data Utils
+* Scheduling Utils
+* Appointment Bundling Utils
+* Custom Gantt Action for Optimization
 
 ## Polygon Utils ##
 The Apex class sfsPolygonUtil provides the following methods:
@@ -19,7 +25,7 @@ The Apex class sfsSeedDataUtil provides the following methods:
 * backupSchedulingPoliciesFull - creates a backup file for all Scheduling Policy, Work Rules, Service Objective records and the relationship between them and saves it as a File (ContentDocument)
 * restoreSchedulingPoliciesFull - restores all Scheduling Policy, Work Rules, Service Objective records from the file created with the backupSchedulingPoliciesFull method
 
-## Create Data Util ##
+## Create Data Utils ##
 The Apex class sfsCreateUtil provides the following methods:
 * createTechnicianUsers - creates users to be used as Service Resources (Technicians)
 * assignPermSetsToTechnicianUsers - assigns the permission sets Field Service Resource Permissions and Field Service Resource License to the users
