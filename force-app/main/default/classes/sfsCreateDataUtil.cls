@@ -29,12 +29,14 @@ public with sharing class sfsCreateDataUtil {
 
         List<User> techUsers = new List<User>();
         for (Integer i=1; i<=nrOfUsers; i++){
+            String nrSuffix = String.valueOf(i).leftPad(String.valueOf(nrOfUsers).length(), '0');
             techUsers.add(
                 new User(
                     ProfileId = profileId,
+                    Alias = firstName.left(8 - nrSuffix.length()) + nrSuffix,
                     FirstName = firstName,
-                    LastName = lastName + String.valueOf(i).leftPad(String.valueOf(nrOfUsers).length(), '0'), 
-                    UserName = userNamePrefix + i + System.now().getTime() + '@' + userNameSuffix,
+                    LastName = lastName + ' ' + nrSuffix, 
+                    UserName = userNamePrefix + firstName + nrSuffix + '@' + userNameSuffix,
                     Email = userEmail,
                     EmailEncodingKey = templateUser.EmailEncodingKey,
                     LanguageLocaleKey = templateUser.LanguageLocaleKey,
