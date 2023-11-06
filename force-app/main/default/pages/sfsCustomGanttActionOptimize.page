@@ -16,6 +16,7 @@
                     end: "{!$CurrentPage.parameters.end}",
                     schedulingPolicy: "{!$Setup.sfsCustomGanttActionOptimizeSettings__c.Default_Scheduling_Policy__c}",
                     filterByFieldApiName: "{!$Setup.sfsCustomGanttActionOptimizeSettings__c.Filter_By_Field_API_Name__c}",
+                    filterByFieldsApiNames: "{!$Setup.sfsCustomGanttActionOptimizeSettings__c.Filter_By_Fields_API_Names__c}",
                     disableAllTaskMode: {!$Setup.sfsCustomGanttActionOptimizeSettings__c.Disable_All_Task_Mode__c},
                 },
                 "lightningvf",

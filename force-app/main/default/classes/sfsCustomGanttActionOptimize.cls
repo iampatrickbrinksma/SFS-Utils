@@ -44,7 +44,7 @@ public with sharing class sfsCustomGanttActionOptimize {
 
             // Start optimization
             FSL.OAAS oaas = new FSL.OAAS();
-            optReqId = oaas.optimize(oaasRequest);   
+            optReqId = oaas.optimize(oaasRequest);
         } else {
             // throw correct error
             if (serviceTerritoryIds == null || serviceTerritoryIds.isEmpty()){

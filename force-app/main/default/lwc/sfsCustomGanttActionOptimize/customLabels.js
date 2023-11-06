@@ -10,9 +10,9 @@ import lblInDayPolicy from '@salesforce/label/c.sfsInDayPolicy';
 import lblToOptimizeAppointments from '@salesforce/label/c.sfsToOptimizeAppointments';
 import lblOptimize from '@salesforce/label/c.sfsOptimize';
 import lblFriendlyErrorMsg from '@salesforce/label/c.sfsFriendlyErrorMsg';
+import lblFilterFields from '@salesforce/label/c.sfsFilterFields';
 import lblFilterFieldErrorMsg from '@salesforce/label/c.sfsFilterFieldErrorMsg';
 import lblFilterFieldTypeErrorMsg from '@salesforce/label/c.sfsFilterFieldTypeErrorMsg';
-import lblFilterFieldMsg from '@salesforce/label/c.sfsFilterFieldMsg';
 import lblAll from '@salesforce/label/c.sfsAll';
 import lblUnscheduled from '@salesforce/label/c.sfsUnscheduled';
 import lblPolicyMissingErrorMsg from '@salesforce/label/c.sfsPolicyMissingErrorMsg';
@@ -32,9 +32,9 @@ const customlabels = {
     lblToOptimizeAppointments,
     lblOptimize,
     lblFriendlyErrorMsg,
+    lblFilterFields,
     lblFilterFieldErrorMsg,
     lblFilterFieldTypeErrorMsg,
-    lblFilterFieldMsg,
     lblAll,
     lblUnscheduled,
     lblPolicyMissingErrorMsg,

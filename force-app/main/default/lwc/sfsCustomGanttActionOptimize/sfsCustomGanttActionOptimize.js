@@ -33,6 +33,7 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
     // to control the behaviour of the component
     @api schedulingPolicy;
     @api filterByFieldApiName;
+    @api filterByFieldsApiNames;
     @api disableAllTaskMode;
 
     // Custom labels
@@ -61,6 +62,10 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
     // Service Territories checkbox group
     stOptions = [];
 
+    // filter by field value
+    filterByField;
+    filterByFieldDisabled = false;
+
     // Loading spinner
     showSpinner = false;
 
@@ -84,23 +89,45 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
         if (data){
             this.saObjectInfo = data;
             // If the Filter By checkbox field provided via a custom setting does not exist, throw error
-            if (this.saObjectInfo.fields[this.filterByFieldApiName]?.label === undefined){
-                this.disableTryAgain = true;
-                this.errors = new Error( this.LABELS.lblFilterFieldErrorMsg.replace('$1', this.filterByFieldApiName).replace($2, this.saObjectInfo.label) );
-            // If the Filter By checkbox field provided via a custom setting is not a checkbox
-            } else if (this.saObjectInfo.fields[this.filterByFieldApiName].dataType !== 'Boolean'){
-                this.disableTryAgain = true;
-                this.errors = new Error( this.LABELS.lblFilterFieldTypeErrorMsg.replace('$1', this.filterByFieldApiName).replace('$2', this.saObjectInfo.label) );
+            if (this.filterByFieldApiName !== undefined && this.filterByFieldApiName !== ''){
+                if (this.saObjectInfo.fields[this.filterByFieldApiName]?.label === undefined){
+                    this.disableTryAgain = true;
+                    this.errors = new Error( this.LABELS.lblFilterFieldErrorMsg.replace('$1', this.filterByFieldApiName).replace('$2', this.saObjectInfo.label) );
+                // If the Filter By checkbox field provided via a custom setting is not a checkbox
+                } else if (this.saObjectInfo.fields[this.filterByFieldApiName].dataType !== 'Boolean'){
+                    this.disableTryAgain = true;
+                    this.errors = new Error( this.LABELS.lblFilterFieldTypeErrorMsg.replace('$1', this.filterByFieldApiName).replace('$2', this.saObjectInfo.label) );
+                }
             }
         } else if (errors) {
             this.errors = errors;
         }
     };
 
-    // If the Filter By Field is provided, show a message that only records where that field is checked will be optimized
-    get filterByFieldMsg(){
+    get filterByFieldsLabel(){
         if (this.saObjectInfo)
-            return this.LABELS.lblFilterFieldMsg.replace('$1', this.saObjectInfo.label).replace('$2', this.saObjectInfo.fields[this.filterByFieldApiName]?.label);
+            return this.LABELS.lblFilterFields.replace('$1', this.saObjectInfo.label);
+    }
+
+    get filterByFields(){
+        if (this.saObjectInfo){
+            if (typeof this.filterByFieldApiName === 'string' && this.filterByFieldApiName.length > 0){
+                this.filterByField = this.filterByFieldApiName;
+                this.filterByFieldDisabled = true;
+                return [ { label: this.saObjectInfo.fields[this.filterByFieldApiName].label, value: this.filterByFieldApiName } ];
+            } else if (this.filterByFieldsApiNames === undefined || this.filterByFieldsApiNames === '') return;
+            const fields = this.filterByFieldsApiNames.split(',');
+            if (fields.length > 0){
+                // Validate if fields exist
+                const validatedFields = [];
+                fields.forEach((field) => {
+                    if (this.saObjectInfo.fields[field]){
+                        validatedFields.push( { label: this.saObjectInfo.fields[field].label, value: field } );
+                    }
+                });
+                return validatedFields;
+            }
+        }
     }
 
     // AllTaskMode combobox options
@@ -286,6 +313,7 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
 
     // Start optimization
     handleOptimize(){
+        console.log(this.filterByField);
         // Throw error if no service territories were selected
         if (this.stIds === undefined || this.stIds.length === 0){
             this.errors = new Error( this.LABELS.lblServiceTerritoryErrorMsg );
@@ -309,7 +337,7 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
             startDate: this.dateRange.startDate,
             endDate: this.dateRange.endDate,
             allTasksMode: this.allTaskMode, 
-            filterByFieldApiName: this.filterByFieldApiName
+            filterByFieldApiName: this.filterByField
         })
         .then((result) => {
             // Once optimization is started, close the Custom Gantt Action modal

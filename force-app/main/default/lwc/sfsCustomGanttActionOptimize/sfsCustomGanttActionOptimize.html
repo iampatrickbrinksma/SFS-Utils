@@ -66,6 +66,29 @@
     <div class="slds-var-m-around_medium">
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_1-of-2">
+                <span class="slds-required slds-var-m-right_xxx-small slds-var-m-left_xxx-small">*</span><label class="slds-form-element__label">{LABELS.lblToOptimizeAppointments}</label>
+                <lightning-combobox 
+                    name="allTaskMode"
+                    options={allTaskModeOptions}
+                    value={allTaskModeOption}
+                    onchange={handleAllTaskModeChange}
+                    disabled={disableAllTaskMode}
+                ></lightning-combobox>
+            </div>
+            <div class="slds-col slds-size_1-of-2">
+                <label class="slds-form-element__label">{filterByFieldsLabel}</label>
+                <lightning-combobox 
+                    name="filterByFields"
+                    options={filterByFields}
+                    value={filterByField}
+                    disabled={filterByFieldDisabled}
+                ></lightning-combobox>
+            </div>            
+        </div>
+    </div> 
+    <div class="slds-var-m-around_medium">
+        <div class="slds-grid slds-gutters">
+            <div class="slds-col slds-size_1-of-2">  
                 <span class="slds-required slds-var-m-right_xxx-small slds-var-m-left_xxx-small">*</span><label class="slds-form-element__label">{LABELS.lblUsingPolicy}</label>
                 <lightning-combobox
                     id="schedulingPolicy"
@@ -76,25 +99,12 @@
                 ></lightning-combobox>
                 <template if:true={inDayEnabled}>
                     <div class="slds-var-p-around_x-small slds-text-body_small slds-text-color_weak">{LABELS.lblInDayPolicy}</div>
-                </template>
+                </template>                              
             </div>
             <div class="slds-col slds-size_1-of-2">
-                <span class="slds-required slds-var-m-right_xxx-small slds-var-m-left_xxx-small">*</span><label class="slds-form-element__label">{LABELS.lblToOptimizeAppointments}</label>
-                <lightning-combobox 
-                    name="allTaskMode"
-                    options={allTaskModeOptions}
-                    value={allTaskModeOption}
-                    onchange={handleAllTaskModeChange}
-                    disabled={disableAllTaskMode}
-                ></lightning-combobox>
-                <template lwc:if={filterByFieldApiName}>
-                    <div class="slds-var-p-around_x-small slds-text-body_small slds-text-color_weak">
-                        {filterByFieldMsg}
-                    </div>
-                </template>
-            </div>
+            </div>            
         </div>
-    </div>         
+    </div>
     <div class="lightboxControllers">
         <lightning-button 
             label={LABELS.lblOptimize}

@@ -89,6 +89,14 @@
         <value>One or more errors occurred:</value>
     </labels>
     <labels>
+        <fullName>sfsFilterFields</fullName>
+        <categories>SFS Utils</categories>
+        <language>en_US</language>
+        <protected>true</protected>
+        <shortDescription>Filter By One Of These Fields</shortDescription>
+        <value>Only optimize $1 records for which the following field is checked</value>
+    </labels>     
+    <labels>
         <fullName>sfsFilterFieldErrorMsg</fullName>
         <categories>SFS Utils</categories>
         <language>en_US</language>
@@ -103,15 +111,7 @@
         <protected>true</protected>
         <shortDescription>Filter Field Type Error Message</shortDescription>
         <value>The field with API name '$1' on the '$2' object is not a Checkbox field! Please contact your Salesforce administrator.</value>
-    </labels>
-    <labels>
-        <fullName>sfsFilterFieldMsg</fullName>
-        <categories>SFS Utils</categories>
-        <language>en_US</language>
-        <protected>true</protected>
-        <shortDescription>Filter Field Message</shortDescription>
-        <value>Only $1 records with the field '$2' checked will be optimized.</value>
-    </labels>    
+    </labels>   
     <labels>
         <fullName>sfsAll</fullName>
         <categories>SFS Utils</categories>
