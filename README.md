@@ -242,6 +242,7 @@ You can configure the behavior of this custom gantt action by populating the Cus
 * If you populate the field "Default Scheduling Policy" with a policy name, the user cannot select another policy, and this policy will be used for optimization
 * If you check the "Disable All Task Mode" field, the All Task Mode selection (All or Unscheduled) will default to All, and cannot be changed
 * If you populate the "Filter By Field API Name" field with the API name of a checkbox field on the Service Appointment object, only records with this field checked will be optimized. A message will be displayed in the custom gantt action
+* If you populate the "Filter By Fields API Names" field with a comma-separated list of the API name of checkbox fields on the Service Appointment object, the user can select the checkbox field which will be used for filtering. If the "Filter By Field API Name" field is populated, this field is ignored
 
 
   
