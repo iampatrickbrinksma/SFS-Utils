@@ -121,7 +121,7 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
                 // Validate if fields exist
                 const validatedFields = [];
                 fields.forEach((field) => {
-                    if (this.saObjectInfo.fields[field]){
+                    if (this.saObjectInfo.fields[field] && this.saObjectInfo.fields[field].dataType === 'Boolean'){
                         validatedFields.push( { label: this.saObjectInfo.fields[field].label, value: field } );
                     }
                 });
