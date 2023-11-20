@@ -5,11 +5,8 @@
             </lightning-spinner>
         </template>
     </div>
-    <div class="slds-var-m-around_medium slds-var-p-bottom_small slds-border_bottom slds-text-heading_small">
-        {LABELS.lblSelectAppointmentsOptimize}
-    </div>
     <template lwc:if={errors}>
-        <div class="slds-var-m-left_medium">
+        <div class="slds-var-m-left_small slds-var-m-right_small">
             <c-error-panel 
                 errors={errors}
                 friendly-message={errorFriendlyMsg}
@@ -17,7 +14,7 @@
             >/</c-error-panel>
         </div>       
     </template>    
-    <div class="slds-var-m-bottom_medium slds-var-m-left_medium slds-var-m-right_medium">
+    <div class="slds-var-m-left_small slds-var-m-right_small">
         <span class="slds-required slds-var-m-right_xxx-small slds-var-m-left_xxx-small">*</span><label class="slds-form-element__label">{LABELS.lblChooseServiceTerritories}</label>
         <div class="slds-grid slds-wrap slds-var-m-top_x-small">
             <template for:each={stOptions} for:item="st">
@@ -33,11 +30,11 @@
                 </div>
             </template>                
         </div>
-        <div class="slds-var-p-around_x-small slds-text-body_small slds-text-color_weak">
+        <div class="slds-var-p-top_x-small slds-text-body_small slds-text-color_weak slds-text-align_right">
             {LABELS.lblESOEnabled}
         </div>            
     </div>     
-    <div class="slds-var-m-around_medium">
+    <div class="slds-var-m-around_small">
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_1-of-2">
                 <lightning-input
@@ -63,7 +60,7 @@
             </div>
         </div>
     </div>
-    <div class="slds-var-m-around_medium">
+    <div class="slds-var-m-around_small">
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_1-of-2">
                 <span class="slds-required slds-var-m-right_xxx-small slds-var-m-left_xxx-small">*</span><label class="slds-form-element__label">{LABELS.lblToOptimizeAppointments}</label>
@@ -76,7 +73,7 @@
                 ></lightning-combobox>
             </div>
             <div class="slds-col slds-size_1-of-2">
-                <label class="slds-form-element__label">{filterByFieldsLabel}</label>
+                <label class="slds-form-element__label">{LABELS.lblFilterFields}</label>
                 <lightning-combobox 
                     name="filterByFields"
                     options={filterByFields}
@@ -86,7 +83,7 @@
             </div>            
         </div>
     </div> 
-    <div class="slds-var-m-around_medium">
+    <div class="slds-var-m-around_small">
         <div class="slds-grid slds-gutters">
             <div class="slds-col slds-size_1-of-2">  
                 <span class="slds-required slds-var-m-right_xxx-small slds-var-m-left_xxx-small">*</span><label class="slds-form-element__label">{LABELS.lblUsingPolicy}</label>
@@ -105,7 +102,7 @@
             </div>            
         </div>
     </div>
-    <div class="lightboxControllers">
+    <div class="slds-var-m-around_small slds-text-align_right">
         <lightning-button 
             label={LABELS.lblOptimize}
             variant="brand"
