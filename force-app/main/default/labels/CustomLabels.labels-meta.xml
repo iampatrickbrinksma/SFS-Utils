@@ -94,7 +94,7 @@
         <language>en_US</language>
         <protected>true</protected>
         <shortDescription>Filter By One Of These Fields</shortDescription>
-        <value>Only optimize $1 records for which the following field is checked</value>
+        <value>which have the following field checked</value>
     </labels>     
     <labels>
         <fullName>sfsFilterFieldErrorMsg</fullName>
