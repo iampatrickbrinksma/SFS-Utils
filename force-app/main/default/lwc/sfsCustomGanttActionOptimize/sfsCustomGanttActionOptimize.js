@@ -104,11 +104,6 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
         }
     };
 
-    get filterByFieldsLabel(){
-        if (this.saObjectInfo)
-            return this.LABELS.lblFilterFields.replace('$1', this.saObjectInfo.label);
-    }
-
     get filterByFields(){
         if (this.saObjectInfo){
             if (typeof this.filterByFieldApiName === 'string' && this.filterByFieldApiName.length > 0){
@@ -156,9 +151,9 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
                 uiapi {
                     query {
                         FSL__User_Setting_Territory__c( 
-                            where: { FSL__User_Setting__r: { FSL__User__c: { eq: $userId} } },    
-                            orderBy: { FSL__Service_Territory__r: { Name: { order: ASC } } }
-                                
+                                first: 2000, 
+                                where: { FSL__User_Setting__r: { FSL__User__c: { eq: $userId} } },    
+                                orderBy: { FSL__Service_Territory__r: { Name: { order: ASC } } }
                             ) {
                             edges {
                                 node {
@@ -186,6 +181,7 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
         // The "checked" property is to keep track which checkboxes are checked
         const _stOptions = [];
         if (data){
+            console.log(JSON.stringify(data));
             data.uiapi.query.FSL__User_Setting_Territory__c.edges.map((edges) => {
                 let stName = edges.node.FSL__Service_Territory__r.Name.value + (edges.node.FSL__Service_Territory__r.FSL__O2_Enabled__c.value === true ? ' *' : '');
                 _stOptions.push( 
@@ -240,6 +236,7 @@ export default class SfsCustomGanttActionOptimize extends LightningElement {
                 uiapi {
                     query {
                         FSL__Scheduling_Policy__c (
+                            first: 2000, 
                             orderBy: { Name: { order: ASC } }
                         ) {
                             edges {
