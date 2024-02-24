@@ -9,6 +9,7 @@ A collection of useful code snippets to use in your Salesforce Field Service imp
 * Scheduling Utils
 * Appointment Bundling Utils
 * Custom Gantt Action for Optimization
+* Create Service Documents via REST API (Document Builder)
 
 ## Polygon Utils ##
 The Apex class sfsPolygonUtil provides the following methods:
@@ -170,14 +171,10 @@ List<ServiceAppointment> sas = [
         ServiceTerritoryId = :serviceTerritoryId and
         IsBundle = false and
         IsBundleMember = false and
-        Apartment__c != null and 
-        Floor__c != null
     order by 
         City ASC, 
         PostalCode ASC, 
         Street ASC, 
-        Floor__c ASC, 
-        Apartment__c ASC
     limit 20
 ];  
 
@@ -218,7 +215,6 @@ A custom gantt action for optimization to be used in the Dispatcher Console, whi
 * Lightning Web Components: sfsCustomGanttActionOptimize *ldsUtil and errorPanel are included which originate from the LWC-Recipes)
 * Visualforce Page: sfsCustomGanttActionOptimize
 
-How to use:
 ### Deploy ###
 1. Deploy the metadata
 2. Provide the right permissions
@@ -244,5 +240,20 @@ You can configure the behavior of this custom gantt action by populating the Cus
 * If you populate the "Filter By Field API Name" field with the API name of a checkbox field on the Service Appointment object, only records with this field checked will be optimized. A message will be displayed in the custom gantt action
 * If you populate the "Filter By Fields API Names" field with a comma-separated list of the API name of checkbox fields on the Service Appointment object, the user can select the checkbox field which will be used for filtering. If the "Filter By Field API Name" field is populated, this field is ignored
 
+## Service Document Utils ##
+The Apex class sfsServiceDocumentUtil provides the following methods:
+* createDocumentAsync - Create service document async (future) via REST API
+* createDocument - Create service document sync via REST API
+
+How to use:
+```
+Id pdfReportId = sfsServiceDocumentUtil.createDocument(
+    '0WOWy000000956vOAA',   // Record Id for the record from which the service document is generated. Needs to match the object the template.
+    '0M0QJ000000Orxd0AC',   // Id of the service document template
+    'Updated now 2',        // Optional: Value will be set as Label in the Service Report record
+    'en_US',                // Optional: Locale
+    null                    // Optional: Id of the PDF report
+));
+```
 
   
