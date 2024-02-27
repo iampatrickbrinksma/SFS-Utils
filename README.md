@@ -251,9 +251,9 @@ Id pdfReportId = sfsServiceDocumentUtil.createDocument(
     '0WOWy000000956vOAA',   // Record Id for the record from which the service document is generated. Needs to match the object the template.
     '0M0QJ000000Orxd0AC',   // Id of the service document template
     'Updated now 2',        // Optional: Value will be set as Label in the Service Report record
-    'en_US',                // Optional: Locale
+    'en_US',                // Optional: Language for the report. 
     null                    // Optional: Id of the PDF report
 ));
 ```
-
+Important: To have the Service Document generated in the correct language, set the "Service Report Language" picklist field to the right value on the record. The API values in this picklist are the values that are supported to provide in the ```locale``` attribute!
   
