@@ -164,7 +164,7 @@ public with sharing class sfsCreateDataUtil {
         
         Boolean createSAs = false;
         if (workTypeId != null){
-            createSAs = [
+            createSAs = ![
                 SELECT 
                     ShouldAutoCreateSvcAppt
                 FROM 
