@@ -2,6 +2,9 @@
 
 A collection of useful code snippets to use in your Salesforce Field Service implementation and projects
 
+## Disclaimer
+IMPORTANT: This code is not intended to be deployed directly to a Salesforce production environment, but to be used as an example. This is not a Salesforce product and is not officially supported by Salesforce.
+
 # What's Included? #
 * Polygon Utils
 * Seed Data Utils
