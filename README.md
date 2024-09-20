@@ -15,27 +15,80 @@ IMPORTANT: This code is not intended to be deployed directly to a Salesforce pro
 * Create Service Documents via REST API (Document Builder)
 
 ## Polygon Utils ##
-The Apex class sfsPolygonUtil provides the following methods:
-* getServiceTerritoryByGeolocation - returns a Service Territory record based on a geolocation (latitude / longitude)
-* getServiceTerritoriesByGeolocation - returns a list of Service Territory records based on a geolocation (latitude / longitude) (Support from Summer '23 onwards)
-* getMapPolygonsByServiceTerritoryId - returns a list of Map Polygon records to which the Service Territory is mapped to
-* getMapPolygonsByServiceTerritoryIds - returns a map of Service Territory Id to the list of Map Polygon records it is mapped to
+The Apex class `sfsPolygonUtil` provides the following methods:
+* `getServiceTerritoryByGeolocation` - returns a Service Territory record based on a geolocation (latitude / longitude)
+* `getServiceTerritoriesByGeolocation` - returns a list of Service Territory records based on a geolocation (latitude / longitude) (Support from Summer '23 onwards)
+* `getMapPolygonsByServiceTerritoryId` - returns a list of Map Polygon records to which the Service Territory is mapped to
+* `getMapPolygonsByServiceTerritoryIds` - returns a map of Service Territory Id to the list of Map Polygon records it is mapped to
 
 ## Seed Data Utils ##
-The Apex class sfsSeedDataUtil provides the following methods:
-* resetServiceAppointmentStatusTransitions - resets the Service Appointment status transitions to the default ones provided that the default status values exist
-* backupServiceAppointmentStatusTransitions - creates a backup file for the current Service Appointment status transitions and saves it as a File (ContentDocument) in an anonymous Apex code block so you can restore the status transitions by running it as anonymous Apex
-* deleteAllSchedulingPolicies - deletes all the Scheduling Policy records and optionally all Work Rule and/or Service Objective records. Exception: The Work Rule records "Earliest Start Permitted" and "Due Date" cannot be deleted
-* backupSchedulingPoliciesFull - creates a backup file for all Scheduling Policy, Work Rules, Service Objective records and the relationship between them and saves it as a File (ContentDocument)
-* restoreSchedulingPoliciesFull - restores all Scheduling Policy, Work Rules, Service Objective records from the file created with the backupSchedulingPoliciesFull method
+The Apex class `sfsSeedDataUtil` provides the following methods:
+* `resetServiceAppointmentStatusTransitions` - resets the Service Appointment status transitions to the default ones provided that the default status values exist
+* `backupServiceAppointmentStatusTransitions` - creates a backup file for the current Service Appointment status transitions and saves it as a File (ContentDocument) in an anonymous Apex code block so you can restore the status transitions by running it as anonymous Apex
+* `deleteAllSchedulingPolicies` - deletes all the Scheduling Policy records and optionally all Work Rule and/or Service Objective records. Exception: The Work Rule records "Earliest Start Permitted" and "Due Date" cannot be deleted
+* `backupSchedulingPoliciesFull` - creates a backup file for all Scheduling Policy, Work Rules, Service Objective records and the relationship between them and saves it as a File (ContentDocument)
+* `restoreSchedulingPoliciesFull` - restores all Scheduling Policy, Work Rules, Service Objective records from the file created with the backupSchedulingPoliciesFull method
 
 ## Create Data Utils ##
-The Apex class sfsCreateUtil provides the following methods:
-* createTechnicianUsers - creates users to be used as Service Resources (Technicians)
-* assignPermSetsToTechnicianUsers - assigns the permission sets Field Service Resource Permissions and Field Service Resource License to the users
-* assignPermSetsToUsers - assigns a list of permission sets to a list of users
-* createServiceTerritoryWithMembers - creates a service territory, service resources and associates these resources to the territory as service territory members based on a geolocaiton and provided radius in meters
-* createWorkOrdersAndServiceAppointments - creates work orders and service appoontments based on a geolocation and provided radius in meters and a random duration based on the provided minimum and maximum length
+The Apex class `sfsCreateUtil` provides the following methods:
+* `createTechnicianUsers` - creates users to be used as Service Resources (Technicians)
+* `assignPermSetsToTechnicianUsers` - assigns the permission sets Field Service Resource Permissions and Field Service Resource License to the users
+* `assignPermSetsToUsers` - assigns a list of permission sets to a list of users
+* `createServiceTerritoryWithMembers` - creates a service territory, service resources and associates these resources to the territory as service territory members based on a geolocaiton and provided radius in meters
+* `createWorkOrdersAndServiceAppointments` - creates work orders and service appoontments based on a geolocation and provided radius in meters and a random duration based on the provided minimum and maximum length
+
+The Apex class `sfsCreateDataQueueable` can be used to create more data in bulk chaining queueable jobs to avoid governor limits. Below is an example of how to use this queueable to create technician users, assign the permission sets, create service territory and member records and create work orders and service appointments for set of service territories at once:
+
+```
+Integer nrOfTechsPerServiceTerritory = 10;
+Id templateUserId = <Id of the user to use as a template to copy settings like language, timezone, etc.>;
+String technicianUserProfileName = <Profile Name>;
+String userEmail = <User email address>;
+String userLastName = 'Technician';
+String userNamePrefix = 'ftech';
+String userNameSuffix = <Part of the user name after the @>;
+Integer radiusOfTerritoryMembersInMeters = <Radius in meters to randomly generate a homebase location for each technician>;
+String operatingHoursName = <Name of the Operating Hours for availability>;
+Integer nrOfWorkOrderRecords = <Number of Work Order and Service Appointment records to be created>;
+Integer radiusOfWorkOrderInMeters = <Radius in meters to generate random locations for the jobs>;
+String workOrderSubject = 'Work Order';
+Integer minimumAppointmentDuration = 30;
+Integer maximumAppointmentDuration = 90;
+String priorityFieldApiName = <API name of custom numeric field on Work Order to store random priority between 1 and 10>;
+
+// Map of Service Territory Names with their center location
+Map<String, List<Decimal>> serviceTerritoryNameToCenterLocation = new Map<String, List<Decimal>>{
+    'Alicante' => new List<Decimal>{38.37649843319099, -0.5066871658079017},
+    'Barcelona' => new List<Decimal>{41.38684963640192, 2.163876087816992},
+    'Madrid' => new List<Decimal>{40.424916, -3.687685},
+    'Murcia' => new List<Decimal>{37.976295486020014, -1.1347487979345818},
+    'Sevilla' => new List<Decimal>{37.382504519503016, -5.973121653944733},
+    'Valencia' => new List<Decimal>{39.496293960005936, -0.39766904694446614}
+};
+
+// Initiate queueable
+sfsCreateDataQueueable q = new sfsCreateDataQueueable(
+    nrOfTechsPerServiceTerritory,
+    templateUserId,
+    technicianUserProfileName,
+    userEmail,
+    userLastName,
+    userNamePrefix,
+    userNameSuffix,
+    serviceTerritoryNameToCenterLocation,    
+    operatingHoursName,
+    radiusOfTerritoryMembersInMeters,
+    nrOfWorkOrderRecords,
+    radiusOfWorkOrderInMeters,
+    workOrderSubject,
+    minimumAppointmentDuration,
+    maximumAppointmentDuration,
+    null
+);
+q.operationStep = 'CreateTechnicianUsers';
+q.stNumber = 0;
+System.enqueueJob(q);
+```
 
 ## Scheduling Utils ##
 The class sfsSchedulingUtil provides an abstract layer on top of the methods that retrieve available time slots and schedule appointments as described [here](https://developer.salesforce.com/docs/atlas.en-us.field_service_dev.meta/field_service_dev/apex_namespace_FSL.htm). 

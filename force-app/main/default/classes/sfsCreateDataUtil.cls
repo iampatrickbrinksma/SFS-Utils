@@ -123,7 +123,7 @@ public with sharing class sfsCreateDataUtil {
     // Create work orders and service appointments with random geolocations based on a provided Work Type and center location and radius
     public static List<WorkOrder> createWorkOrdersAndServiceAppointments(Id stId, Double radiusInMeters, Integer nrOfRecords, 
                                                                         Id workTypeId, String woSubject, Datetime esp, Datetime dd,
-                                                                        Integer minDuration, Integer maxDuration)
+                                                                        Integer minDuration, Integer maxDuration, String priorityFieldApiName)
     {
         ServiceTerritory st = [
             SELECT
@@ -148,17 +148,20 @@ public with sharing class sfsCreateDataUtil {
 
         List<WorkOrder> wos = new List<WorkOrder>();
         for (Integer i=0; i<nrOfRecords; i++) {
-            wos.add(
-                new WorkOrder(
-                    ServiceTerritoryId = stId,    
-                    WorkTypeId = workTypeId,
-                    Subject = woSubject + ' ' + String.valueOf(i).leftPad(String.valueOf(nrOfRecords).length(), '0'),
-                    StartDate = esp,
-                    EndDate = dd,
-                    Latitude = woLocations[i].getLatitude(),                    
-                    Longitude = woLocations[i].getLongitude()                    
-                )
+            Integer schedulingPriority = sfsUtil.getRandomInteger(1, 10);
+            WorkOrder wo = new WorkOrder(
+                ServiceTerritoryId = stId,    
+                WorkTypeId = workTypeId,
+                Subject = woSubject + ' ' + String.valueOf(i).leftPad(String.valueOf(nrOfRecords).length(), '0'),
+                StartDate = esp,
+                EndDate = dd,
+                Latitude = woLocations[i].getLatitude(),                    
+                Longitude = woLocations[i].getLongitude()                    
             );
+            if (priorityFieldApiName != null){
+                wo.put(priorityFieldApiName, schedulingPriority);
+            }
+            wos.add(wo);
         }
         insert wos;  
         
@@ -179,18 +182,21 @@ public with sharing class sfsCreateDataUtil {
         if (createSAs){
             List<ServiceAppointment> sas = new List<ServiceAppointment>();
             for (Integer i=0; i<nrOfRecords; i++) {
-                sas.add(
-                    new ServiceAppointment(
-                        ServiceTerritoryId = stId,
-                        ParentRecordId = wos[i].Id,
-                        Latitude = wos[i].Latitude,
-                        Longitude = wos[i].Longitude,
-                        EarliestStartTime = esp,
-                        DueDate = dd,
-                        Duration = sfsUtil.getRandomInteger(minDuration, maxDuration),
-                        DurationType = 'Minutes'
-                    )
+                ServiceAppointment sa = new ServiceAppointment(
+                    ServiceTerritoryId = stId,
+                    ParentRecordId = wos[i].Id,
+                    Latitude = wos[i].Latitude,
+                    Longitude = wos[i].Longitude,
+                    EarliestStartTime = esp,
+                    DueDate = dd,
+                    Duration = sfsUtil.getRandomInteger(minDuration, maxDuration),
+                    DurationType = 'Minutes'
                 );
+                if (priorityFieldApiName != null){
+                    Decimal schedulingPriority = (Decimal) wos[i].get(priorityFieldApiName);
+                    sa.FSL__Schedule_over_lower_priority_appointment__c = schedulingPriority < 5 ? true : false;                    
+                }
+                sas.add(sa);
             }
             insert sas;           
         }

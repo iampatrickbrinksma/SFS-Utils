@@ -14,7 +14,8 @@ public with sharing class sfsCreateDataQueueable implements Queueable, Database.
     private Integer radiusOfWorkOrderInMeters;
     private String workOrderSubject;
     private Integer minimumAppointmentDuration = 30;
-    private Integer maximumAppointmentDuration = 90;    
+    private Integer maximumAppointmentDuration = 90;   
+    private String priorityFieldApiName; 
 
     public String operationStep = 'CreateTechnicianUsers';
     public Integer stNumber = 0;
@@ -34,7 +35,8 @@ public with sharing class sfsCreateDataQueueable implements Queueable, Database.
         Integer radiusOfWorkOrderInMeters,
         String workOrderSubject,
         Integer minimumAppointmentDuration,
-        Integer maximumAppointmentDuration
+        Integer maximumAppointmentDuration,
+        String priorityFieldApiName
     ) {
         this.nrOfTechsPerServiceTerritory= nrOfTechsPerServiceTerritory;
         this.templateUserId = templateUserId;
@@ -51,6 +53,7 @@ public with sharing class sfsCreateDataQueueable implements Queueable, Database.
         this.workOrderSubject = workOrderSubject;
         this.minimumAppointmentDuration = minimumAppointmentDuration;
         this.maximumAppointmentDuration = maximumAppointmentDuration;
+        this.priorityFieldApiName = priorityFieldApiName;
     }
 
     public void execute(QueueableContext ctx){
@@ -95,7 +98,8 @@ public with sharing class sfsCreateDataQueueable implements Queueable, Database.
                     System.now().addDays(-1),
                     System.now().addDays(180),
                     minimumAppointmentDuration,
-                    maximumAppointmentDuration
+                    maximumAppointmentDuration,
+                    priorityFieldApiName
                 );
             }
         }
@@ -128,7 +132,8 @@ public with sharing class sfsCreateDataQueueable implements Queueable, Database.
                 radiusOfWorkOrderInMeters,
                 workOrderSubject,
                 minimumAppointmentDuration,
-                maximumAppointmentDuration
+                maximumAppointmentDuration,
+                priorityFieldApiName
             );
             q.operationStep = operationStep;
             q.stNumber = stNumber;
