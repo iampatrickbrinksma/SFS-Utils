@@ -270,6 +270,7 @@ Embedding the standard Field Service Global Actions - Appointment Booking, Candi
 * Lightning Web Component: sfsActionInFlow
 * Flow: Field_Service_Action_Embedded
 * Quick Action: ServiceAppointment.Field_Service_Global_Action
+
 Deploy these components, activate the Flow and add the Quick Action to the appropriate Service Appointment Page Layout. 
 
 ## Custom Gantt Action for Optimization ##
