@@ -11,6 +11,9 @@ IMPORTANT: This code is not intended to be deployed directly to a Salesforce pro
 * Create Data Utils
 * Scheduling Utils
 * Appointment Bundling Utils
+* Start Optimization once Automatic Bundling is complete
+* Prepare and Create Appointment Bundles Util
+* Embed Standard Field Service Global Actions in Flow
 * Custom Gantt Action for Optimization
 * Create Service Documents via REST API (Document Builder)
 
@@ -261,6 +264,14 @@ sfsCreateBundleQueueable q = new sfsCreateBundleQueueable(
 );
 System.enqueueJob(q);
 ```
+
+## Embed Standard Field Service Global Actions in Flow ##
+Embedding the standard Field Service Global Actions - Appointment Booking, Candidates and Emergency - in a screen flow provides a way to guide users through the process of creating the right data set in order to schedule an appointment. To embed these actions in a screen flow a Lightning Web Component is provided which loads the appropriate action into an iframe. The following components are included:
+* Lightning Web Component: sfsActionInFlow
+* Flow: Field_Service_Action_Embedded
+* Quick Action: ServiceAppointment.Field_Service_Global_Action
+Deploy these components, activate the Flow and add the Quick Action to the appropriate Service Appointment Page Layout. 
+
 ## Custom Gantt Action for Optimization ##
 A custom gantt action for optimization to be used in the Dispatcher Console, which includes the following components:
 * Aura App: sfsCustomGanttActionOptimizeApp

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<LightningComponentBundle xmlns="http://soap.sforce.com/2006/04/metadata">
+    <apiVersion>61.0</apiVersion>
+    <isExposed>true</isExposed>
+    <masterLabel>Field Service Actions</masterLabel>
+    <description>Embed a Field Service global Action in Flow.</description>
+    <targets>
+        <target>lightning__FlowScreen</target>
+    </targets>
+    <targetConfigs>
+        <targetConfig targets="lightning__FlowScreen">
+            <property name="recordId" label="Record Id" type="String" role="inputOnly" required="true" />
+            <property name="sfsAction" label="Field Service Global Action. Allowed values: Appointment Booking, Candidates, Emergency" type="String" default="Appointment Booking" role="inputOnly" required="true" />
+            <property name="frameHeight" label="Height" type="Integer" default="550" role="inputOnly" required="true" />
+        </targetConfig>
+    </targetConfigs>
+</LightningComponentBundle>
