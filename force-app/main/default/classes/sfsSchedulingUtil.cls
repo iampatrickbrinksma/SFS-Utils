@@ -7,23 +7,43 @@
  */
 public with sharing class sfsSchedulingUtil {
 
+    // To keep track of the earliest slot start and latest slot end
+    // to know the total horizon of the available time slots
+    private static Datetime earliestSlotStart;
+    private static Datetime latestSlotEnd;
+    // To know the duration of the appointment in minutes
+    // as Candidates only returns the start
+    private static Integer appointmentDurationInMinutes;
+    // Service Appointment Information
+    private static Id saId;
+    private static ServiceAppointment sa;
+
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
-     * Retrieve available time slots using the candidates method and map arrival windows
+     * Retrieve available time slots using the candidates method and map to arrival windows
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
      * @param   schedulingPolicyId          Id of the scheduling policy used to retrieve time slots
      * @param   serviceAppointmentId        Id of the service appointment to retrieve time slots for
      * @param   operatingHoursId            Id of the operating hours representing the arrival windows
-     * @return  Map<Long, sfsTimeSlot>      Map if start time slot (getTime()) and the arrival window slot
+     * @param   sortBy                      Sort slots by either grade ('grade') or start time ('starttime')
+     * @return  Map<Long, sfsTimeSlot>      Map of start time slot (getTime()) and the arrival window slot information which includes the resources available for that slot
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
      */        
     public static List<sfsTimeSlot> getCandidateSlotsWithArrivalWindow(Id schedulingPolicyId, Id serviceAppointmentId, Id operatingHoursId, String sortBy){
 
         sfsPerformanceMeasure.start('getCandidateSlotsWithArrivalWindow');
 
+        sfsSchedulingUtil.saId = serviceAppointmentId;
+
         // Map of start time slot as Long (getTime()) and the arrival window slot
         Map<Long, sfsTimeSlot> abSlotsMap = new Map<Long, sfsTimeSlot>();
         List<sfsTimeSlot> abSlots;
+
+        // Get service appointment information
+        getServiceAppointment();
+
+        // Get duration of the appointment
+        sfsSchedulingUtil.appointmentDurationInMinutes = Integer.valueOf(getAppointmentDuration());
 
         // Get available time slots using Candidates to retrieve resources + availability
         Map<Id, List<sfsTimeSlot>> srIdToTimeSlots = getGradedMatrixSlots(schedulingPolicyId, serviceAppointmentId, sortBy);
@@ -31,11 +51,8 @@ public with sharing class sfsSchedulingUtil {
         // If no slots were found, we're done
         if (!srIdToTimeSlots.isEmpty()){
 
-            // Get duration of the appointment
-            Integer appointmentDurationInMinutes = Integer.valueOf(getAppointmentDuration(serviceAppointmentId));
-
             // Get the arrival windows definition
-            TimeZone tz = getTimeZone(serviceAppointmentId);
+            TimeZone tz = getTimeZone();
             Map<String, List<arrivalWindowSlot>> dayToAWSlots = getArrivalWindowTimeSlots(operatingHoursId, tz);
             
             sfsPerformanceMeasure.start('DetermineValidArrivalWindows');
@@ -47,6 +64,11 @@ public with sharing class sfsSchedulingUtil {
             * At this point you could filter out any resources by a custom mechanism
             */
 
+            // Retrieve Service Resource details to add to the slot details
+            sfsPerformanceMeasure.start('GetServiceResourceDetails');
+            Map<Id, ServiceResource> srIdToSr = getServiceResourceDetails(srIdToTimeSlots.keySet());
+            sfsPerformanceMeasure.stop('GetServiceResourceDetails');
+            
             // Determine the valid arrival windows for all resources and availability
             for (Id resourceId : srIdToTimeSlots.keySet()){
                 // To store the list of valid arrival window slots for this resource
@@ -85,7 +107,7 @@ public with sharing class sfsSchedulingUtil {
                         } else {
                             // Add existing arrival window slot to resource map
                             sfsTimeSlot abSlot = abSlotsMap.get(key);
-                            abSlot.addResourceGrade(resourceId, resSlot.grade);
+                            abSlot.addResourceGrade(srIdToSr.get(resourceId), resSlot);
                             srAWSlots.add(abSlot);
                         }
                     }
@@ -150,11 +172,22 @@ public with sharing class sfsSchedulingUtil {
                     timeSlots.add(
                         new sfsTimeSlot(
                             option.Interval.Start,
-                            option.Interval.Finish,
+                            option.Interval.Start.addMinutes(sfsSchedulingUtil.appointmentDurationInMinutes),
                             option.Grade,
                             sortBy
                         )
                     );
+                    // Determine the earliest slot start and latest slot end
+                    if (earliestSlotStart == null) {
+                        earliestSlotStart = option.Interval.Start;
+                    } else if (option.Interval.Start < earliestSlotStart){
+                        earliestSlotStart = option.Interval.Start;
+                    }
+                    if (latestSlotEnd == null) {
+                        latestSlotEnd = option.Interval.Finish;
+                    } else if (option.Interval.Finish > latestSlotEnd) {
+                        latestSlotEnd = option.Interval.Finish;
+                    }
                 }
                 timeSlots.sort();
                 srIdToTimeSlots.put(resourceId, timeSlots);
@@ -266,6 +299,83 @@ public with sharing class sfsSchedulingUtil {
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Schedule appointment using the provided scheduling policy to be used as invocable
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @param   inputs                  List<Inputs> containing the scheduling policy and appointment Ids
+     * @return  List<Output>            List of outputs containing the service resource Id and if the appointment is scheduled
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+    */     
+    @InvocableMethod(label='Schedule Appointment' description='Schedule an appointment using the FSL.ScheduleService.schedule method') 
+    public static List<Outputs> schedule(List<Inputs> inputs) {
+        Inputs input = inputs[0];
+        Outputs output = new Outputs();
+
+        try {
+            FSL.ScheduleResult result = FSL.ScheduleService.schedule(input.schedulingPolicyId, input.serviceAppointmentId);
+            output.serviceResourceId = result.Resource.Id;
+            output.isScheduled = true;
+        } catch (Exception e) {
+            output.isScheduled = false;
+            output.errorMessage = e.getTypeName() + ' ' + e.getMessage() + ' ' + e.getCause() + ' ' + e.getStackTraceString();
+        }
+
+        return new List<Outputs>{output};
+        
+    }
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Input params for the invocable schedule method
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+    */     
+    public class Inputs {
+        @InvocableVariable(label='Service Appointment Id' required=true)
+        public Id serviceAppointmentId;
+
+        @InvocableVariable(label='Scheduling Policy Id' required=true)
+        public Id schedulingPolicyId;
+    }
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Output params for the invocable schedule method
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+    */    
+    public class Outputs {
+        @InvocableVariable(label='Indicator the appointment was scheduled')
+        public Boolean isScheduled;
+
+        @InvocableVariable(label='Service Resource Id')
+        public Id serviceResourceId;
+
+        @InvocableVariable(label='Error Message')
+        public String errorMessage;        
+    }    
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Retrieve Service Appointment details
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+    */     
+    private static void getServiceAppointment() {
+        if (sfsSchedulingUtil.sa == null && sfsSchedulingUtil.saId != null) {
+            sfsSchedulingUtil.sa = [
+                select
+                    Id,
+                    Duration,
+                    DurationType,
+                    ServiceTerritoryId,
+                    ServiceTerritory.OperatingHours.TimeZone        
+                from 
+                    ServiceAppointment
+                where 
+                    Id = :sfsSchedulingUtil.saId
+            ];   
+        }
+    }
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
      * Retrieve arrival time slots from a given operating hours record
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
      * @param   operatingHoursId                        Id of the operating hours representing the arrival windows
@@ -320,22 +430,81 @@ public with sharing class sfsSchedulingUtil {
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Retrieve arrival time slots from a given operating hours record for the entire range
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @param   operatingHoursId                        Id of the operating hours representing the arrival windows
+     * @param   tz                                      TimeZone of the appointment or user
+     * @return  Map<Date, List<arrivalWindowSlot>>      Map of date in UTC to a list of arrival windows in UTC
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+     */      
+    public static Map<Date, List<arrivalWindowSlot>> getArrivalWindowTimeSlotsForSlotRange(Id operatingHoursId, TimeZone tz){
+
+        sfsPerformanceMeasure.start('getArrivalWindowTimeSlotsForSlotRange');
+
+        Map<Date, List<arrivalWindowSlot>> datesToSlots = newMapOfDatesToListOfArrivalWindows();
+        System.debug(datesToSlots);
+
+        List<Schema.TimeSlot> ohTimeSlots = [
+            select 
+                Id, 
+                DayOfWeek,
+                StartTime,
+                EndTime,
+                Type,
+                OperatingHours.TimeZone
+            from 
+                TimeSlot
+            where 
+                OperatingHoursId = :operatingHoursId
+            order by 
+                DayOfWeek ASC,
+                StartTime ASC
+                    
+        ];
+        
+        if (!ohTimeSlots.isEmpty()){
+            // Create a map of the DayOfWeek to the list of TimeSlot records for that day
+            Map<String, List<Schema.TimeSlot>> dayToTimeSlots = new Map<String, List<Schema.TimeSlot>>();
+            for (Schema.TimeSlot ohTimeSlot : ohTimeSlots){
+                List<Schema.TimeSlot> timeSlots = dayToTimeSlots.get(ohTimeSlot.DayOfWeek);
+                if (timeSlots == null) timeSlots = new List<Schema.TimeSlot>();
+                timeSlots.add(ohTimeSlot);
+                dayToTimeSlots.put(ohTimeSlot.DayOfWeek, timeSlots);
+            }
+            // Now add the list of time slots to the main map for each Date in the range
+            for (Date currentDate : datesToSlots.keySet()){
+                String dayOfWeek = getDayOfWeek(currentDate);
+                // Validate if the day does have slots defined
+                if (dayToTimeSlots.get(dayOfWeek) != null){
+                    List<Schema.TimeSlot> timeSlots = dayToTimeSlots.get(dayOfWeek);
+                    List<arrivalWindowSlot> awSlots = datesToSlots.get(currentDate);
+                    for (Schema.TimeSlot timeSlot : timeSlots){
+                        awSlots.add(
+                            new arrivalWindowSlot(
+                                timeSlot.StartTime, 
+                                timeSlot.EndTime
+                            )
+                        );
+                    }
+                    datesToSlots.put(currentDate, awSlots);
+                }
+            }
+        }
+
+        sfsPerformanceMeasure.stop('getArrivalWindowTimeSlotsForSlotRange');
+
+        return datesToSlots;
+    }    
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
      * Retrieve TimeZone from appointment, if no territory then return user's timezone
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
      * @param   serviceAppointmentId    Id of the service appointment
      * @return  TimeZone                TimeZone of appointment or user
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
      */    
-    private static TimeZone getTimeZone(Id serviceAppointmentId){
-        ServiceAppointment sa = [
-            select 
-                ServiceTerritoryId,
-                ServiceTerritory.OperatingHours.TimeZone
-            from 
-                ServiceAppointment 
-            where 
-                Id = :serviceAppointmentId
-        ];
+    private static TimeZone getTimeZone(){
         TimeZone tz;
         if (sa.ServiceTerritoryId == null){
             tz = UserInfo.getTimeZone();
@@ -343,6 +512,23 @@ public with sharing class sfsSchedulingUtil {
             tz = TimeZone.getTimeZone(sa.ServiceTerritory.OperatingHours.TimeZone);
         }
         return tz;
+    }
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Retrieve Service Resource details for the set of Service Resource Ids passed in
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @param   srIds                       Set of Service Resource Ids
+     * @return  Map<Id, ServiceResource>    Map of Service Resource Ids to Service Resource records
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+     */     
+    private static Map<Id, ServiceResource> getServiceResourceDetails(Set<Id> srIds) {
+        return new Map<Id, ServiceResource>([
+            SELECT Id, Name, RelatedRecordId
+            FROM ServiceResource
+            WHERE Id IN :srIds
+        ]);
+
     }
 
     /**
@@ -366,6 +552,25 @@ public with sharing class sfsSchedulingUtil {
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Return new instance of a Map of Dates to new List of ArrivalWindowSlot
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @return  Map<Date, List<arrivalWindowSlot>>    Map of Date in UTC to new List of ArrivalWindowSlot
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+     */    
+    private static Map<Date, List<arrivalWindowSlot>> newMapOfDatesToListOfArrivalWindows(){
+        Date startDate = earliestSlotStart.dateGMT().addDays(-1);
+        Date endDate = latestSlotEnd.dateGMT().addDays(1);
+
+        Map<Date, List<arrivalWindowSlot>> datesToSlots = new Map<Date, List<arrivalWindowSlot>>();
+        for(Date currentDate = startDate; currentDate <= endDate; currentDate = currentDate.addDays(1)){
+            datesToSlots.put(currentDate, new List<arrivalWindowSlot>());
+        }
+
+        return datesToSlots;
+    }    
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
      * Return day of the week in String of a DateTime
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
      * @param   dt          Datetime value
@@ -378,30 +583,27 @@ public with sharing class sfsSchedulingUtil {
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Return day of the week in String of a DateTime
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @param   dt          Date value
+     * @return  String      Day of the week (Monday, Tuesday, etc)
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+     */    
+    private static String getDayOfWeek(Date d){
+        Datetime dt = Datetime.newInstanceGmt(d.year(), d.month(), d.day());
+        return dt.format('EEEE');
+    }
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
      * Get the duration of the appointment in minutes. This is needed because the getGradedMatrix
      * method only returns the start time of the slot
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
      * @return   Decimal    Duration of the appointment in minutes
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
      */               
-    private static Decimal getAppointmentDuration(Id serviceAppointmentId){
-       
-        sfsPerformanceMeasure.start('getAppointmentDuration');
-
-        ServiceAppointment sa = [
-            select
-                Id,
-                Duration,
-                DurationType
-            from 
-                ServiceAppointment
-            where 
-                Id = :serviceAppointmentId
-        ];
-
-        sfsPerformanceMeasure.stop('getAppointmentDuration');
-
-        return sa.DurationType == 'Minutes' ? sa.Duration : sa.Duration * 60;
+    private static Decimal getAppointmentDuration(){       
+        return sfsSchedulingUtil.sa.DurationType == 'Minutes' ? sfsSchedulingUtil.sa.Duration : sfsSchedulingUtil.sa.Duration * 60;
     }  
 
     /**
@@ -417,7 +619,7 @@ public with sharing class sfsSchedulingUtil {
     private static Datetime convertSlotDateTime(Datetime dt, TimeZone serviceTerritoryTimeZone){
         return dt.addSeconds(serviceTerritoryTimeZone.getOffset(dt) / -1000);
     }     
-    
+
     /**
      * Structure for arrival window time slot
      */
@@ -427,6 +629,12 @@ public with sharing class sfsSchedulingUtil {
         public Time endTime;
         public Time endTimeGmt;
         public Integer durationInMinutes;
+
+        public arrivalWindowSlot(Time startTime, Time endTime){
+            this.startTime = startTime;
+            this.endTime = endTime;
+            this.durationInMinutes = arrivalWindowDurationInMinutes();
+        }        
 
         public arrivalWindowSlot(Time startTime, Time startTimeGmt, Time endTime, Time endTimeGmt){
             this.startTime = startTime;
@@ -477,7 +685,7 @@ public with sharing class sfsSchedulingUtil {
         // Grade of the timeslot
         public Decimal grade;
         // Map of service resource Id to the grade of their slot
-        public Map<Id, Decimal> resourceGrade;
+        public Map<Id, sfsResourceSlot> resourceToSlot = new Map<Id, sfsResourceSlot>();
         // Indicate which sorting direction is requested
         // Accepted values 'grade' and 'starttime'
         public String sortBy {
@@ -509,17 +717,18 @@ public with sharing class sfsSchedulingUtil {
         }
 
         // Constructor for arrival window including a resource grade
-        public sfsTimeSlot(Datetime startTime, Datetime endTime, Decimal grade, Id resourceId) {
-            this.startTime = startTime; 
-            this.endTime = endTime; 
-            this.resourceGrade = new Map<Id, Decimal>{resourceId => grade};
-            this.grade = grade;
+        public sfsTimeSlot(ServiceResource sr, sfsTimeSlot slot) {
+            this.startTime = slot.startTime; 
+            this.endTime = slot.endTime; 
+            this.resourceToSlot = new Map<Id, sfsResourceSlot>{sr.Id => new sfsResourceSlot(sr, slot.grade, slot.startTime, slot.endTime)};
+            this.grade = slot.grade;
         }    
 
         // Add a resource grade to existing time slots, highest grade is stored at time slot level
-        public void addResourceGrade(Id resourceId, Decimal grade){
-            this.resourceGrade.put(resourceId, grade);
-            if (grade > this.grade) this.grade = grade;
+        public void addResourceGrade(ServiceResource sr, sfsTimeSlot slot){
+            sfsResourceSlot resSlot = new sfsResourceSlot(sr, slot.grade, slot.startTime, slot.endTime);
+            this.resourceToSlot.put(sr.Id, resSlot);
+            if (slot.grade > this.grade) this.grade = slot.grade;
         }
 
         /**
@@ -544,5 +753,30 @@ public with sharing class sfsSchedulingUtil {
             return -1;
         }           
     }    
+
+    /**
+    * ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+    * Class store a resource time slot with start, end and grade
+    * ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+    */  
+    private class sfsResourceSlot {
+
+        public Id srId;
+        public String srName;
+        public Id userId;
+        public Decimal grade;
+        public Datetime startTime;
+        public Datetime endTime;
+
+        public sfsResourceSlot(ServiceResource sr, Decimal grade, Datetime startTime, Datetime endTime) {
+            this.srId = sr.Id;
+            this.srName = sr.Name;
+            this.userId = sr.RelatedRecordId;
+            this.grade = grade;
+            this.startTime = startTime;
+            this.endTime = endTime;
+        }
+
+    }
 
 }
