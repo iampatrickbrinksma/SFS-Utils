@@ -306,20 +306,24 @@ public with sharing class sfsSchedulingUtil {
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */     
     @InvocableMethod(label='Schedule Appointment' description='Schedule an appointment using the FSL.ScheduleService.schedule method') 
-    public static List<Outputs> schedule(List<Inputs> inputs) {
-        Inputs input = inputs[0];
-        Outputs output = new Outputs();
+    public static List<ScheduleOutputs> schedule(List<ScheduleInputs> inputs) {
+        ScheduleInputs input = inputs[0];
+        ScheduleOutputs output = new ScheduleOutputs();
 
         try {
-            FSL.ScheduleResult result = FSL.ScheduleService.schedule(input.schedulingPolicyId, input.serviceAppointmentId);
-            output.serviceResourceId = result.Resource.Id;
-            output.isScheduled = true;
+            FSL.ScheduleResult result = scheduleAppointment(input.serviceAppointmentId, input.schedulingPolicyId);
+            if (result == null){
+                output.isScheduled = false;
+            } else {
+                output.isScheduled = true;
+                output.serviceResourceId = result.Resource.Id;
+            }
         } catch (Exception e) {
             output.isScheduled = false;
             output.errorMessage = e.getTypeName() + ' ' + e.getMessage() + ' ' + e.getCause() + ' ' + e.getStackTraceString();
         }
 
-        return new List<Outputs>{output};
+        return new List<ScheduleOutputs>{output};
         
     }
 
@@ -328,7 +332,7 @@ public with sharing class sfsSchedulingUtil {
      * Input params for the invocable schedule method
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */     
-    public class Inputs {
+    public class ScheduleInputs {
         @InvocableVariable(label='Service Appointment Id' required=true)
         public Id serviceAppointmentId;
 
@@ -341,7 +345,7 @@ public with sharing class sfsSchedulingUtil {
      * Output params for the invocable schedule method
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */    
-    public class Outputs {
+    public class ScheduleOutputs {
         @InvocableVariable(label='Indicator the appointment was scheduled')
         public Boolean isScheduled;
 

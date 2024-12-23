@@ -144,6 +144,12 @@ Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-10
 FSL.ScheduleResult scheduleResult = sfsSchedulingUtil.scheduleAppointment(serviceAppointmentId, schedulingPolicyId);
 ```
 
+### Schedule Appointment (Invocable) ###
+This method allows scheduling an appointment as an invocable method, so it can be used in Flows for example
+```
+sfsSchedulingUtil.scheduleAppointment(List<ScheduleInputs> inputs);
+```
+
 ### Schedule Complex Work ###
 This method schedule appointments that related to each other via complex work using the FSL.ScheduleService.scheduleExtended method. Use this method only when ES&O is enabled, as it assumes it runs synchronously.
 ```
