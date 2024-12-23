@@ -33,8 +33,10 @@ public with sharing class sfsPerformanceMeasure {
     // Write as JSON in debug log
     public static void debugResults(){
         String debug = '\n\n';
+        String sep = '>';
         for (String perfMeasureName : perfMeasureNames){
-            debug += perfMeasureName + ': ' + perfMeasures.get(perfMeasureName) + ' ms\n';
+            debug += sep + perfMeasureName + ': ' + perfMeasures.get(perfMeasureName) + ' ms\n';
+            sep += '--';
         }
         System.debug(debug);
     }
