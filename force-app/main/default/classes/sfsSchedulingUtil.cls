@@ -228,12 +228,17 @@ public with sharing class sfsSchedulingUtil {
 
         sfsPerformanceMeasure.start('ProcessAppointmentBookingSlots');
 
+        System.debug(bookingSlots[0].interval.start);
+        System.debug(serviceTerritoryTimeZone.getOffset(bookingSlots[0].interval.start) / -1000);
+
         // Convert the time slots into a list of slots
         if (!bookingSlots.isEmpty()){
             for (FSL.AppointmentBookingSlot bookingSlot : bookingSlots){
                 timeSlots.add(
                     new sfsTimeSlot(
+                        bookingSlot.interval.start,    
                         convertSlotDateTime(bookingSlot.interval.start, serviceTerritoryTimeZone),
+                        bookingSlot.interval.finish,
                         convertSlotDateTime(bookingSlot.interval.finish, serviceTerritoryTimeZone),
                         bookingSlot.grade,
                         sortBy
@@ -251,7 +256,7 @@ public with sharing class sfsSchedulingUtil {
         sfsPerformanceMeasure.debugResults();
 
         return timeSlots;
-    }    
+    }   
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -295,66 +300,12 @@ public with sharing class sfsSchedulingUtil {
         sfsPerformanceMeasure.debugResults();    
 
         return scheduleResult;
+    }  
+
+    public static void getServiceAppointment(Id serviceAppointmentId){
+        sfsSchedulingUtil.saId = serviceAppointmentId;
+        getServiceAppointment();
     }
-
-    /**
-     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
-     * Schedule appointment using the provided scheduling policy to be used as invocable
-     * ────────────────────────────────────────────────────────────────────────────────────────────────  
-     * @param   inputs                  List<Inputs> containing the scheduling policy and appointment Ids
-     * @return  List<Output>            List of outputs containing the service resource Id and if the appointment is scheduled
-     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
-    */     
-    @InvocableMethod(label='Schedule Appointment' description='Schedule an appointment using the FSL.ScheduleService.schedule method') 
-    public static List<ScheduleOutputs> schedule(List<ScheduleInputs> inputs) {
-        ScheduleInputs input = inputs[0];
-        ScheduleOutputs output = new ScheduleOutputs();
-
-        try {
-            FSL.ScheduleResult result = scheduleAppointment(input.serviceAppointmentId, input.schedulingPolicyId);
-            if (result == null){
-                output.isScheduled = false;
-            } else {
-                output.isScheduled = true;
-                output.serviceResourceId = result.Resource.Id;
-            }
-        } catch (Exception e) {
-            output.isScheduled = false;
-            output.errorMessage = e.getTypeName() + ' ' + e.getMessage() + ' ' + e.getCause() + ' ' + e.getStackTraceString();
-        }
-
-        return new List<ScheduleOutputs>{output};
-        
-    }
-
-    /**
-     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
-     * Input params for the invocable schedule method
-     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
-    */     
-    public class ScheduleInputs {
-        @InvocableVariable(label='Service Appointment Id' required=true)
-        public Id serviceAppointmentId;
-
-        @InvocableVariable(label='Scheduling Policy Id' required=true)
-        public Id schedulingPolicyId;
-    }
-
-    /**
-     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
-     * Output params for the invocable schedule method
-     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
-    */    
-    public class ScheduleOutputs {
-        @InvocableVariable(label='Indicator the appointment was scheduled')
-        public Boolean isScheduled;
-
-        @InvocableVariable(label='Service Resource Id')
-        public Id serviceResourceId;
-
-        @InvocableVariable(label='Error Message')
-        public String errorMessage;        
-    }    
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -440,7 +391,7 @@ public with sharing class sfsSchedulingUtil {
      * @return  TimeZone                TimeZone of appointment or user
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
      */    
-    private static TimeZone getTimeZone(){
+    public static TimeZone getTimeZone(){
         TimeZone tz;
         if (sa.ServiceTerritoryId == null){
             tz = UserInfo.getTimeZone();
@@ -616,8 +567,12 @@ public with sharing class sfsSchedulingUtil {
     public class sfsTimeSlot implements Comparable {
         // Start datetime of the time slot
         public Datetime startTime;
+        // Start datetime of the time slot in UTC
+        public Datetime startTimeUTC;
         // End datetime of the time slot
         public Datetime endTime;
+        // End datetime of the time slot in UTC
+        public Datetime endTimeUTC;
         // Grade of the timeslot
         public Decimal grade;
         // Map of service resource Id to the grade of their slot
@@ -651,6 +606,16 @@ public with sharing class sfsSchedulingUtil {
             this.grade = grade; 
             this.sortBy = sortBy;
         }
+
+        // Constrcutor for basic arrival window, inlcuding UTC, with sorting
+        public sfsTimeSlot(Datetime startTime, Datetime startTimeUTC, Datetime endTime, Datetime endTimeUTC, Decimal grade, String sortBy) {
+            this.startTime = startTime; 
+            this.startTimeUTC = startTimeUTC;
+            this.endTime = endTime; 
+            this.endTimeUTC = endTimeUTC;
+            this.grade = grade; 
+            this.sortBy = sortBy;
+        }        
 
         // Constructor for arrival window including a resource grade
         public sfsTimeSlot(ServiceResource sr, sfsTimeSlot slot) {

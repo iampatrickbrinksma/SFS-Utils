@@ -20,6 +20,7 @@ By using this code, you acknowledge that Salesforce is not liable for any issues
 * Seed Data Utils
 * Create Data Utils
 * Scheduling Utils
+* Invocable methods for appointment booking and scheduling
 * Appointment Bundling Utils
 * Start Optimization once Automatic Bundling is complete
 * Prepare and Create Appointment Bundles Util
@@ -144,18 +145,26 @@ Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-10
 FSL.ScheduleResult scheduleResult = sfsSchedulingUtil.scheduleAppointment(serviceAppointmentId, schedulingPolicyId);
 ```
 
-### Schedule Appointment (Invocable) ###
-This method allows scheduling an appointment as an invocable method, so it can be used in Flows for example
-```
-sfsSchedulingUtil.scheduleAppointment(List<ScheduleInputs> inputs);
-```
-
 ### Schedule Complex Work ###
 This method schedule appointments that related to each other via complex work using the FSL.ScheduleService.scheduleExtended method. Use this method only when ES&O is enabled, as it assumes it runs synchronously.
 ```
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
 Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
 List<FSL.ScheduleResult> scheduleResults = sfsSchedulingUtil.scheduleAppointmentChain(serviceAppointmentId, schedulingPolicyId);
+```
+
+## Invocable methods for appointment booking and scheduling ##
+
+### Get book appointment slots (Invocable) ###
+This method allows retrieving slots as an invocable method, so it can be used in Flows, but also to create an Agentforce action.
+```
+sfsGetSlotsInvocable.getAppointmentBookingSlots(List<Inputs> inputs);
+```
+
+### Schedule Appointment (Invocable) ###
+This method allows scheduling an appointment as an invocable method, so it can be used in Flows, but also to create an Agentforce action.
+```
+sfsScheduleInvocable.schedule(List<Inputs> inputs);
 ```
 
 ## Appointment Bundling Utils ## 
