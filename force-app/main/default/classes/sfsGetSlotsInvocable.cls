@@ -4,7 +4,7 @@ public without sharing class sfsGetSlotsInvocable {
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
      * Retrieve available time slots for appointment booking as invocable
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
-     * @param   inputs                  List<Inputs> containing the scheduling policy and appointment Ids
+     * @param   inputs          List<Inputs> containing the scheduling policy and appointment Ids
      * @return  List<Outputs>   List of outputs containing the service resource Id and if the appointment is scheduled
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */     
