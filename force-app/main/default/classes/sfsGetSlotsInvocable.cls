@@ -21,7 +21,7 @@ public without sharing class sfsGetSlotsInvocable {
                 input.schedulingPolicyId, 
                 input.operatingHoursId, 
                 serviceTerritoryTimeZone, 
-                false, 
+                input.exactAppointments, 
                 input.sortBy == null ? 'grade' : input.sortBy
             );
             if (slots.isEmpty()){
@@ -53,10 +53,10 @@ public without sharing class sfsGetSlotsInvocable {
 
         @InvocableVariable(label='Operating Hours Id' description='The single ID of an Operating Hours record.' required=true)
         public Id operatingHoursId;
-/*
-        @InvocableVariable(label='Exact Appointments')
+
+        @InvocableVariable(label='Exact Appointments' description='Specifies whether the result uses exact appointments (true) or an arrival window (false).')
         public Boolean exactAppointments; 
-*/
+
         @InvocableVariable(label='Sort slots by grade or starttime' description='The way the available time slots are ranked, either by "grade" or by "starttime".')
         public String sortBy; 
     }
