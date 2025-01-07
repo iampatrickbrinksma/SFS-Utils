@@ -14,6 +14,9 @@ public without sharing class sfsScheduleInvocable {
         Outputs output = new Outputs();
 
         try {
+            sfsSchedulingUtil.getServiceAppointment(input.serviceAppointmentId);
+            TimeZone serviceTerritoryTimeZone = sfsSchedulingUtil.getTimeZone();
+            output.serviceTerritoryTimeZone = serviceTerritoryTimeZone.getID();
             FSL.ScheduleResult result = sfsSchedulingUtil.scheduleAppointment(input.serviceAppointmentId, input.schedulingPolicyId);
             if (result == null){
                 output.isScheduled = false;
@@ -50,6 +53,10 @@ public without sharing class sfsScheduleInvocable {
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */    
     public class Outputs {
+
+        @InvocableVariable(label='Service Territory Time Zone' description='This is the Time Zone ID of the time zone of the service territory.')
+        public String serviceTerritoryTimeZone;
+
         @InvocableVariable(label='True if the service appointment was scheduled' description='True if the service appointment was scheduled')
         public Boolean isScheduled;
 
