@@ -105,7 +105,7 @@ System.enqueueJob(q);
 ```
 
 ## Scheduling Utils ##
-The class sfsSchedulingUtil provides an abstract layer on top of the methods that retrieve available time slots and schedule appointments as described [here](https://developer.salesforce.com/docs/atlas.en-us.field_service_dev.meta/field_service_dev/apex_namespace_FSL.htm). 
+The class sfsScheduling provides an abstract layer on top of the methods that retrieve available time slots and schedule appointments as described [here](https://developer.salesforce.com/docs/atlas.en-us.field_service_dev.meta/field_service_dev/apex_namespace_FSL.htm). 
 
 How to use:
 
@@ -115,7 +115,15 @@ This method first retrieves available time slots for candidates and then validat
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
 Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
 Id operatingHoursId = [select Id from OperatingHours where Name = 'Gold Appointments Calendar'].Id;
-List<sfsTimeSlot> slots = sfsSchedulingUtil.getCandidateSlotsWithArrivalWindow(schedulingPolicyId, serviceAppointmentId, operatingHoursId, 'grade');
+Boolean exactAppointments = false;
+String sortBy = 'grade';
+sfsScheduling scheduling = new sfsScheduling(
+    serviceAppointmentId, 
+    schedulingPolicyId,
+    exactAppointments,
+    sortBy
+);
+List<sfsTimeSlot> slots = scheduling.getCandidateSlotsWithArrivalWindow();
 ```
 
 ### Get candidates ###
@@ -123,18 +131,32 @@ This method first retrieves available time slots for candidates as the global ac
 ```
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
 Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
-List<sfsTimeSlot> slots = sfsSchedulingUtil.getGradedMatrixSlots(schedulingPolicyId, serviceAppointmentId, 'grade');
+String sortBy = 'grade';
+sfsScheduling scheduling = new sfsScheduling(
+    serviceAppointmentId, 
+    schedulingPolicyId,
+    sortBy
+);
+List<sfsTimeSlot> slots = sfsSchedulingUtil.getGradedMatrixSlots();
 ```
+
+The method ```getGradedMatrixSlotsWithResourceName``` adds the service resource name to the output, which might be useful when displaying this information to users.
 
 ### Get book appointment slots ###
 This method retrieves the available slots represented as arrival window slots during which the resource will arrive on site as the global action "Book Appointment" using the FSL.AppointmentBookingService.getSlots method. You can sort by Grade (grade) and Start Time (starttime) of the slot.
 ```
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
-ServiceAppointment sa = [select Id, ServiceTerritory.OperatingHours.TimeZone from ServiceAppointment where Name = 'SA-1001'].Id;
-Id serviceAppointmentId = sa.Id;
-TimeZone serviceTerritoryTimeZone = TimeZone.getTimeZone(sa.ServiceTerritory.OperatingHours.TimeZone);
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
 Id operatingHoursId = [select Id from OperatingHours where Name = 'Gold Appointments Calendar'].Id;
-List<sfsTimeSlot> slots = sfsSchedulingUtil.getAppointmentBookingSlots(serviceAppointmentId, Id schedulingPolicyId, Id operatingHoursId, TimeZone serviceTerritoryTimeZone, Boolean exactAppointments, 'grade');
+Boolean exactAppointments = false;
+String sortBy = 'grade';
+sfsScheduling scheduling = new sfsScheduling(
+    serviceAppointmentId, 
+    schedulingPolicyId,
+    exactAppointments,
+    sortBy
+);
+List<sfsTimeSlot> slots = scheduling.getAppointmentBookingSlots();
 ```
 
 ### Schedule Appointment ###
@@ -142,7 +164,11 @@ This method schedule an appointment using the FSL.ScheduleService.schedule metho
 ```
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
 Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
-FSL.ScheduleResult scheduleResult = sfsSchedulingUtil.scheduleAppointment(serviceAppointmentId, schedulingPolicyId);
+sfsScheduling scheduling = new sfsScheduling(
+    serviceAppointmentId, 
+    schedulingPolicyId
+);
+FSL.ScheduleResult scheduleResult = scheduling.scheduleAppointment();
 ```
 
 ### Schedule Complex Work ###
@@ -150,21 +176,57 @@ This method schedule appointments that related to each other via complex work us
 ```
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
 Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
-List<FSL.ScheduleResult> scheduleResults = sfsSchedulingUtil.scheduleAppointmentChain(serviceAppointmentId, schedulingPolicyId);
+sfsScheduling scheduling = new sfsScheduling(
+    serviceAppointmentId, 
+    schedulingPolicyId
+);
+List<FSL.ScheduleResult> scheduleResults = scheduling.scheduleAppointmentChain();
 ```
 
-## Invocable methods for appointment booking and scheduling ##
+## Invocable methods for appointment booking, candidates and scheduling ##
+These invocable methods can be used for example in Flow, or to define an Agent Action for Agentforce agents.
 
 ### Get book appointment slots (Invocable) ###
 This method allows retrieving slots as an invocable method, so it can be used in Flows, but also to create an Agentforce action.
 ```
-sfsGetSlotsInvocable.getAppointmentBookingSlots(List<Inputs> inputs);
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+Id operatingHoursId = [select Id from OperatingHours where Name = 'Gold Appointments Calendar'].Id;
+Boolean exactAppointments = false;
+String sortBy = 'grade';
+sfsGetSlotsInvocable.Inputs inputs = new sfsGetSlotsInvocable.Inputs();
+inputs.schedulingPolicyId = schedulingPolicyId;
+inputs.serviceAppointmentId = serviceAppointmentId;
+inputs.operatingHoursId = operatingHoursId;
+inputs.exactAppointments = exactAppointments;
+inputs.sortBy = sortBy;
+List<sfsGetSlotsInvocable.Outputs> outputs = sfsGetSlotsInvocable.getAppointmentBookingSlots(new List<sfsGetSlotsInvocable.Inputs>{inputs});
 ```
+Optionally, if the ```originalArrivalWindowStart``` and ```originalArrivalWindowEnd``` input properties are provided, the method updates the service appointment arrival window with these values.
+
+### Get Candidates (Invocable) ###
+This method allows retrieving candidates an invocable method, so it can be used in Flows, but also to create an Agentforce action.
+```
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+String sortBy = 'grade';
+sfsGetCandidatesInvocable.Inputs inputs = new sfsGetCandidatesInvocable.Inputs();
+inputs.schedulingPolicyId = schedulingPolicyId;
+inputs.serviceAppointmentId = serviceAppointmentId;
+inputs.sortBy = sortBy;
+List<sfsGetCandidatesInvocable.Outputs> outputs = sfsGetCandidatesInvocable.getCandidates(new List<sfsGetCandidatesInvocable.Inputs>{inputs});
+```
+Optionally, if the ```originalArrivalWindowStart``` and ```originalArrivalWindowEnd``` input properties are provided, the method updates the service appointment arrival window with these values.
 
 ### Schedule Appointment (Invocable) ###
 This method allows scheduling an appointment as an invocable method, so it can be used in Flows, but also to create an Agentforce action.
 ```
-sfsScheduleInvocable.schedule(List<Inputs> inputs);
+Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
+Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
+sfsScheduleInvocable.Inputs inputs = new sfsScheduleInvocable.Inputs();
+inputs.schedulingPolicyId = schedulingPolicyId;
+inputs.serviceAppointmentId = serviceAppointmentId;
+List<sfsScheduleInvocable.Outputs> outputs = sfsScheduleInvocable.getCandidates(new List<sfsScheduleInvocable.Inputs>{inputs});
 ```
 
 ## Appointment Bundling Utils ## 

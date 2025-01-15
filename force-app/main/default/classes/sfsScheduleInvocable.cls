@@ -4,8 +4,8 @@ public without sharing class sfsScheduleInvocable {
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
      * Schedule appointment using the provided scheduling policy to be used as invocable
      * ────────────────────────────────────────────────────────────────────────────────────────────────  
-     * @param   inputs                  List<Inputs> containing the scheduling policy and appointment Ids
-     * @return  List<Output>            List of outputs containing the service resource Id and if the appointment is scheduled
+     * @param   inputs          List of inputs
+     * @return  List<Output>    List of outputs
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */     
     @InvocableMethod(label='Schedule Appointment' description='Use this action to schedule an appointment using the service appointment ID and scheduling policy ID') 
@@ -14,10 +14,10 @@ public without sharing class sfsScheduleInvocable {
         Outputs output = new Outputs();
 
         try {
-            sfsSchedulingUtil.getServiceAppointment(input.serviceAppointmentId);
-            TimeZone serviceTerritoryTimeZone = sfsSchedulingUtil.getTimeZone();
-            output.serviceTerritoryTimeZone = serviceTerritoryTimeZone.getID();
-            FSL.ScheduleResult result = sfsSchedulingUtil.scheduleAppointment(input.serviceAppointmentId, input.schedulingPolicyId);
+            sfsScheduling scheduling = new sfsScheduling(input.serviceAppointmentId, input.schedulingPolicyId);
+            output.serviceTerritoryTimeZone = scheduling.serviceAppointmentTimeZone.getID();
+
+            FSL.ScheduleResult result = scheduling.scheduleAppointment();
             if (result == null){
                 output.isScheduled = false;
             } else {
@@ -40,10 +40,10 @@ public without sharing class sfsScheduleInvocable {
      * ───────────────────────────────────────────────────────────────────────────────────────────────┘
     */     
     public class Inputs {
-        @InvocableVariable(label='Service Appointment Id' description='The single ID of a Service Appointment record.' required=true)
+        @InvocableVariable(label='Service Appointment Id' description='The ID of the service appointment Id that will be scheduled.' required=true)
         public Id serviceAppointmentId;
 
-        @InvocableVariable(label='Scheduling Policy Id' description='The single ID of a Scheduling Policy record.' required=true)
+        @InvocableVariable(label='Scheduling Policy Id' description='The ID of a scheduling policy used when scheduling the service appointment.' required=true)
         public Id schedulingPolicyId;
     }
 
@@ -54,19 +54,19 @@ public without sharing class sfsScheduleInvocable {
     */    
     public class Outputs {
 
-        @InvocableVariable(label='Service Territory Time Zone' description='This is the Time Zone ID of the time zone of the service territory.')
+        @InvocableVariable(label='Service Territory Time Zone' description='The time zone of the service territory of the service appointment.')
         public String serviceTerritoryTimeZone;
 
-        @InvocableVariable(label='True if the service appointment was scheduled' description='True if the service appointment was scheduled')
+        @InvocableVariable(label='True if the service appointment was scheduled' description='True if the service appointment was successfully scheduled.')
         public Boolean isScheduled;
 
-        @InvocableVariable(label='Service Appointment' description='The Service Appointment record details.')
+        @InvocableVariable(label='Service Appointment' description='The service appointment details as a result of scheduling.')
         public ServiceAppointment serviceAppointment;
 
-        @InvocableVariable(label='Service Resource' description='The Service Resource record details of the assigned resource.')
+        @InvocableVariable(label='Service Resource' description='The service resource details of the resource assigned to the service appointment.')
         public ServiceResource serviceResource;
 
-        @InvocableVariable(label='Error Message' description='The details of an error in case an exception occurred while scheduling the service appointment.')
+        @InvocableVariable(label='Error Message' description='The details of any exceptions that were raised while scheduling the service appointment.')
         public String errorMessage;        
     }      
 
