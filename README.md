@@ -111,6 +111,9 @@ How to use:
 
 ### Get arrival windows based on candidates ###
 This method first retrieves available time slots for candidates and then validates the slots against arrival windows, so you are able to filter on resources with custom logic, and the returned slots provide the grade per resource. You can sort by Grade (grade) and Start Time (starttime) of the slot.
+
+**IMPORTANT**: Because the ```getGradedMatrix``` method of the ```FSL.GradeSlotsService Apex``` class does return all possible slots, some possible arrival windows might be missing from the resulting slots. For example, if a candidate doesn't have anything scheduled for a day, for that day typically 2 slots are returned. One for the start of the day, and one for after the break (if that is used). 
+
 ```
 Id schedulingPolicyId = [select Id from FSL__Scheduling_Policy__c where Name = 'Customer First'].Id;
 Id serviceAppointmentId = [select Id from ServiceAppointment where Name = 'SA-1001'].Id;
