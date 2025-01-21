@@ -7,6 +7,8 @@
  */
 public with sharing class sfsScheduling {
 
+    public class sfsSchedulingException extends Exception {}
+
     // Performance measureing
     sfsPerformanceMeasure perf = new sfsPerformanceMeasure();
     // Service Appointment Id
@@ -26,22 +28,26 @@ public with sharing class sfsScheduling {
     private Datetime latestSlotEnd;
 
     // Service Appointment Information
-    private ServiceAppointment sa{
+    private ServiceAppointment sa {
         get {
             if (sa == null) {
-                sa = [
-                    select
-                        Id,
-                        Duration,
-                        DurationType,
-                        DurationInMinutes,
-                        ServiceTerritoryId,
-                        ServiceTerritory.OperatingHours.TimeZone        
-                    from 
-                        ServiceAppointment
-                    where 
-                        Id = :this.saId
-                ]; 
+                try {
+                    sa = [
+                        select
+                            Id,
+                            Duration,
+                            DurationType,
+                            DurationInMinutes,
+                            ServiceTerritoryId,
+                            ServiceTerritory.OperatingHours.TimeZone        
+                        from 
+                            ServiceAppointment
+                        where 
+                            Id = :this.saId
+                    ]; 
+                } catch (Exception e) {
+                    throw new sfsSchedulingException('Error while retrieving Service Appointment record with Id: ' + saId + ' ' + e.getTypeName() + ' ' + e.getMessage() + ' ' + e.getCause() + ' ' + e.getStackTraceString());
+                }
             } 
             return sa;
         }
@@ -49,7 +55,7 @@ public with sharing class sfsScheduling {
     }   
 
     // Service appointment duration in minutes
-    private Integer saDurationInMinutes{
+    private Integer saDurationInMinutes {
         get {
             if (saDurationInMinutes == null) {
                 saDurationInMinutes = Integer.valueOf(sa.DurationInMinutes);
@@ -60,7 +66,7 @@ public with sharing class sfsScheduling {
     }
 
     // Timezone of the service appointment
-    private TimeZone saTimeZone{
+    private TimeZone saTimeZone {
         get {
             if (saTimeZone == null) {
                 if (sa.ServiceTerritoryId == null) {
@@ -393,6 +399,26 @@ public with sharing class sfsScheduling {
 
         return scheduleResult;
     }  
+
+    /**
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┐
+     * Get Appointment Insights
+     * ────────────────────────────────────────────────────────────────────────────────────────────────  
+     * @return  sfsAppointmentInsightsResult     converted class from the output, see https://developer.salesforce.com/docs/atlas.en-us.252.0.field_service_dev.meta/field_service_dev/apex_class_FSL_AppointmentInsightsResult.htm
+     * ───────────────────────────────────────────────────────────────────────────────────────────────┘
+    */ 
+    public sfsAppointmentInsights getAppointmentInsights() {
+
+        perf.start('getAppointmentInsights');
+
+        FSL.AppointmentInsightsResult appointmentInsightsResult = FSL.ScheduleService.getAppointmentInsights(this.spId, this.saId);
+        sfsAppointmentInsights insights = new sfsAppointmentInsights(appointmentInsightsResult);
+        perf.stop('getAppointmentInsights');
+
+        perf.debugResults();    
+
+        return insights;
+    }      
 
     /**
      * ───────────────────────────────────────────────────────────────────────────────────────────────┐
@@ -745,6 +771,84 @@ public with sharing class sfsScheduling {
             this.grade = grade;
             this.startTime = startTime;
             this.endTime = endTime;
+        }
+
+    }
+
+    /**
+    * ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+    * Class to represent the FSL.AppointmentInsightsResult output of FSL.ScheduleService.getAppointmentInsights method
+    * ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+    */      
+    public class sfsAppointmentInsights {
+
+        public Integer blockedSlots;
+        public List<sfsBlockingRule> blockingRules;
+        public Datetime horizonEndDate;
+        public Datetime horizonStartDate;
+        public Datetime operationStartTime;
+        public Id schedulingPolicyId;
+        public Integer resourcesEvaluated;
+        public Id serviceAppointmentId;
+        public Id serviceTerritoryId;
+
+        public sfsAppointmentInsights(FSL.AppointmentInsightsResult result) {
+            this.blockedSlots = result.blockedSlots;
+            this.horizonEndDate = result.horizonEndDate;
+            this.horizonStartDate = result.horizonStartDate;
+            this.operationStartTime = result.operationStartTime;
+            this.resourcesEvaluated = result.resourcesEvaluated;
+            this.schedulingPolicyId = result.policyId;
+            this.serviceAppointmentId = result.serviceAppointmentId;
+            this.serviceTerritoryId = result.serviceTerritoryId;
+            this.addBlockingRules(result.blockingRules);
+        }
+
+        private void addBlockingRules(List<FSL.AppointmentInsightsResult.BlockingRule> rules) {
+            this.blockingRules = new List<sfsBlockingRule>();
+            Map<String, sfsBlockingRule> rtNameToRule = new Map<String, sfsBlockingRule>();
+            for (FSL.AppointmentInsightsResult.BlockingRule rule : rules) {
+                rtNameToRule.put(rule.ruleName, new sfsBlockingRule(rule));
+            }
+            List<FSL__Scheduling_Policy_Work_Rule__c> policyRules = [
+                SELECT 
+                    FSL__Work_Rule__r.RecordType.DeveloperName,
+                    FSL__Work_Rule__r.Name
+                FROM 
+                    FSL__Scheduling_Policy_Work_Rule__c
+                WHERE 
+                    FSL__Scheduling_Policy__c = :this.schedulingPolicyId 
+                AND
+                    FSL__Work_Rule__r.RecordType.DeveloperName IN :rtNameToRule.keySet()
+            ];
+            for (FSL__Scheduling_Policy_Work_Rule__c policyRule : policyRules) {
+                sfsBlockingRule blockingRule = rtNameToRule.get(policyRule.FSL__Work_Rule__r.RecordType.DeveloperName);
+                if (blockingRule != null) {
+                    blockingRule.policyWorkRuleNames.add(policyRule.FSL__Work_Rule__r.Name);
+                }
+            }
+            this.blockingRules.addAll(rtNameToRule.values());
+        }
+
+    }
+
+    /**
+    * ─────────────────────────────────────────────────────────────────────────────────────────────────┐
+    * Class to represent the FSL.AppointmentInsightsResult.BlockingRule output of FSL.ScheduleService.getAppointmentInsights method
+    * ─────────────────────────────────────────────────────────────────────────────────────────────────┘
+    */          
+    public class sfsBlockingRule {
+
+        public String ruleName;
+        public List<String> policyWorkRuleNames;
+        public Integer slotsBlockedByMultipleRules;
+        public Integer slotsBlockedByRule;
+
+        public sfsBlockingRule(FSL.AppointmentInsightsResult.BlockingRule blockingRule){
+            this.ruleName = blockingRule.ruleName;
+            this.policyWorkRuleNames = new List<String>();
+            this.slotsBlockedByMultipleRules = blockingRule.slotsBlockedByMultipleRules;
+            this.slotsBlockedByRule = blockingRule.slotsBlockedByRule;
         }
 
     }
