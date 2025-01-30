@@ -3,6 +3,9 @@
 A collection of useful code snippets to use in your Salesforce Field Service implementation and projects
 
 ## Disclaimer
+
+**Please do not log a support case with Salesforce support. If you encounter an issue or have a question, create a new issue in this repository!**
+
 This repository contains code intended to help Salesforce Field Service customers and partners accelerate their implementations. Please note the following:
 * This code is not an official Salesforce product.
 * It is not officially supported by Salesforce.
